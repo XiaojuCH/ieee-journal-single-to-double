@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/XiaojuCH/ieee-journal-single-to-double?style=social)](https://github.com/XiaojuCH/ieee-journal-single-to-double/stargazers)
-[![Compile examples](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml/badge.svg)](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml)
+[![Compile examples](https://img.shields.io/badge/CI-coming_in_P1-lightgrey)](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions)
 
 The missing guide to converting IEEE one-column drafts to two-column journal submissions.
 
@@ -51,3 +51,7 @@ IEEEtran one-column drafts are comfortable to write, but they hide the layout ru
 ## Why This Exists
 
 A lot of IEEE manuscripts begin as one-column review drafts because they are easier to read and revise. The hard part is that the final two-column journal version is governed by float placement, author-footnote conventions, and journal-mode IEEEtran behavior. This project is a small, opinionated conversion guide for that exact gap.
+
+---
+
+⭐ If this saved you an hour of debugging, a star helps others find it.
