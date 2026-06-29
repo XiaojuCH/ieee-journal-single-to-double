@@ -1,0 +1,7 @@
+interface:
+  display_name: "IEEE Journal Single to Double"
+  short_description: "Convert IEEEtran one-column drafts into safe journal two-column manuscripts."
+  default_prompt: "Use $ieee-journal-single-to-double to convert my IEEEtran one-column manuscript into a clean two-column journal submission."
+
+policy:
+  allow_implicit_invocation: true

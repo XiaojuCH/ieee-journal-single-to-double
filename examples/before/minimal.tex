@@ -1,0 +1,59 @@
+﻿\documentclass[journal,12pt,draftclsnofoot,onecolumn]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+
+\begin{document}
+
+\title{Minimal IEEE One-Column Draft}
+
+\author{
+    \IEEEauthorblockN{First Author\textsuperscript{1}, Second Author\textsuperscript{2}}
+    \IEEEauthorblockA{\textsuperscript{1}Department of Examples, Example University\\
+    \textsuperscript{2}Department of Conversion, Sample Hospital}
+}
+
+\maketitle
+
+\begin{abstract}
+This minimal draft intentionally shows common one-column IEEEtran patterns that need attention before a two-column journal submission.
+\end{abstract}
+
+\begin{IEEEkeywords}
+IEEEtran, one-column draft, two-column conversion.
+\end{IEEEkeywords}
+
+\section{Introduction}
+One-column drafts are convenient during writing, but some draft patterns do not transfer cleanly to IEEE journal two-column output.
+
+\begin{figure}[H]
+\centering
+\fbox{\rule{0pt}{1.2in}\rule{0.92\textwidth}{0pt}}
+\caption{A draft figure pinned with \texttt{[H]} and sized to \texttt{\textbackslash textwidth}.}
+\label{fig:draft}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{A draft table pinned with \texttt{[H]}.}
+\label{tab:draft}
+\begin{tabular}{lcc}
+\toprule
+Method & Dice & HD95 \\
+\midrule
+Baseline & 0.84 & 41.2 \\
+Converted & 0.86 & 40.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusion}
+This file is intentionally shaped like a draft that should be converted before submission.
+
+\begin{thebibliography}{1}
+\bibitem{ieeetran}
+M.~Shell, ``IEEEtran,'' CTAN, 2015.
+\end{thebibliography}
+
+\end{document}

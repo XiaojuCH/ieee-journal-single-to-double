@@ -1,0 +1,58 @@
+﻿\documentclass[journal,twocolumn]{IEEEtran}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{stfloats}
+
+\begin{document}
+
+\title{Minimal IEEE Two-Column Journal Submission}
+
+\author{First~Author and Second~Author%
+\thanks{First Author is with the Department of Examples, Example University.}%
+\thanks{Second Author is with the Department of Conversion, Sample Hospital.}%
+\thanks{Corresponding author: Second Author (e-mail: second.author@example.edu).}}
+
+\maketitle
+
+\begin{abstract}
+This minimal manuscript shows the same content converted into safer IEEEtran journal two-column patterns.
+\end{abstract}
+
+\begin{IEEEkeywords}
+IEEEtran, journal submission, two-column conversion.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Two-column IEEE journal submissions should use journal author footnotes and float environments that match the target width.
+
+\begin{figure*}[t!]
+\centering
+\fbox{\rule{0pt}{1.2in}\rule{0.92\textwidth}{0pt}}
+\caption{A wide figure promoted to \texttt{figure*} and sized to \texttt{\textbackslash textwidth}.}
+\label{fig:converted}
+\end{figure*}
+
+\begin{table}[htbp]
+\centering
+\caption{A compact table allowed to float in one column.}
+\label{tab:converted}
+\begin{tabular}{lcc}
+\toprule
+Method & Dice & HD95 \\
+\midrule
+Baseline & 0.84 & 41.2 \\
+Converted & 0.86 & 40.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Conclusion}
+This file ends cleanly after references and avoids final-submission-only biography material.
+
+\begin{thebibliography}{1}
+\bibitem{ieeetran}
+M.~Shell, ``IEEEtran,'' CTAN, 2015.
+\end{thebibliography}
+
+\end{document}
