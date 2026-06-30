@@ -26,10 +26,17 @@ Use this skill to convert an IEEEtran one-column draft into a two-column journal
 
 3. Add two-column float support only when needed:
    ```latex
-   \usepackage{stfloats}
-   \usepackage{tabularx}
+   \usepackage{stfloats}   % figure*/table* at page bottom; load before adjustbox
+   \usepackage{adjustbox}  % wide tables: \begin{adjustbox}{max width=\textwidth}
+   \usepackage{placeins}   % provides \FloatBarrier; do NOT use [section] option
+
+   % High-density float fractions
+   \renewcommand{\topfraction}{0.9}
+   \renewcommand{\dbltopfraction}{0.9}
+   \renewcommand{\floatpagefraction}{0.8}
+   \renewcommand{\dblfloatpagefraction}{0.8}
    ```
-   Keep `float` only if the manuscript still needs `[H]` for narrow, intentionally pinned items. Do not use `[H]` for normal two-column journal floats.
+   Keep `float` only if the manuscript still needs `[H]` for narrow, intentionally pinned items. Do not use `[H]` for normal two-column journal floats. Do not load `placeins` with `[section]`—it inserts automatic barriers at every `\section` that create whitespace gaps.
 
 4. Fix the author area:
    - For IEEE journal/Transactions mode, prefer `\author{... \thanks{...}}`.
@@ -41,11 +48,22 @@ Use this skill to convert an IEEEtran one-column draft into a two-column journal
    - Single-column plots and compact tables: use `figure` or `table` and size to `\columnwidth`.
    - Replace `\makebox[\textwidth][c]{\includegraphics[width=1.25\textwidth]{...}}` with a proper `figure*` unless the target journal explicitly allows overwide one-column draft figures.
 
-6. Remove final-submission-only material for initial submission:
+6. Fix the bibliography page:
+   - Place `\FloatBarrier` immediately before `\begin{thebibliography}` (or `\bibliography`) to flush all pending `figure*`/`table*` before references start. Without this, wide floats still in LaTeX's queue are inserted at the top of bibliography pages.
+   - Place `\IEEEtriggeratref{N}` before `\begin{thebibliography}` to balance the two reference columns. Start with N ≈ half the total reference count and adjust by ±1 until both columns are the same height:
+   ```latex
+   \FloatBarrier
+   \IEEEtriggeratref{7}   % adjust N to balance columns
+   \begin{thebibliography}{15}
+   ...
+   \end{thebibliography}
+   ```
+
+7. Remove final-submission-only material for initial submission:
    - Delete or comment out `IEEEbiography`, `IEEEbiographynophoto`, photo placeholders, and "PLACE PHOTO HERE" content.
    - Ensure `\end{thebibliography}` or `\bibliography{...}` is followed directly by `\end{document}`.
 
-7. Compile and verify:
+8. Compile and verify:
    - Run `latexmk -pdf -g -interaction=nonstopmode -halt-on-error <main.tex>`.
    - Check the log for `LaTeX Error`, undefined citations/references, `Float too large`, and `Overfull \vbox`.
    - Render or inspect the PDF. Confirm title page, wide floats, table legibility, and final references page.

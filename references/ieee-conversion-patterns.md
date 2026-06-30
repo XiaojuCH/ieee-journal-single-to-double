@@ -15,21 +15,21 @@ After:
 
 ```latex
 \documentclass[journal,twocolumn]{IEEEtran}
-\usepackage{float}
-\usepackage{stfloats}
-\usepackage{tabularx}
+\usepackage{stfloats}   % figure*/table* at page bottom; load before adjustbox
+\usepackage{adjustbox}  % wide tables: \begin{adjustbox}{max width=\textwidth}
+\usepackage{placeins}   % provides \FloatBarrier; do NOT use [section] option —
+                        % that forces floats out at every section break and
+                        % creates whitespace gaps that hurt page density
 
-\renewcommand{\topfraction}{0.8}
-\renewcommand{\bottomfraction}{0.6}
-\renewcommand{\textfraction}{0.15}
-\renewcommand{\floatpagefraction}{0.7}
-\setcounter{topnumber}{3}
-\setcounter{bottomnumber}{2}
-\setcounter{totalnumber}{5}
-\emergencystretch=1em
+% High-density float fractions: allow up to 90% of a page to be floats.
+% Tune down to 0.8/0.7 if the journal reviewer complains about float-heavy pages.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\floatpagefraction}{0.8}
+\renewcommand{\dblfloatpagefraction}{0.8}
 ```
 
-Use the relaxed float settings only when the manuscript is figure/table heavy. They are conservative enough for most IEEE review drafts, but journal instructions override them.
+Do not keep `\usepackage{float}` unless specific `[H]` overrides are still needed. In two-column IEEEtran, `[H]` breaks multi-column flow and is almost never the right choice.
 
 ## 2. Author Block
 
@@ -154,8 +154,43 @@ Common conversion choices:
 
 Avoid using many consecutive `figure*`/`table*` floats. Wide floats can only appear at top/bottom float slots and may move away from their first citation.
 
-## 6. Initial Submission Cleanup
+**Placement specifiers and density:**
 
+- `[t!]` — page top only, ignores `\topfraction` cap. Best for density: LaTeX packs text below the float on the same page.
+- `[htbp]` — flexible, good default for single-column floats.
+- `[tbp]` — allows dedicated float pages. Use when a float keeps drifting past important text, at the cost of some page density.
+- Never use `[section]{placeins}` — it inserts automatic barriers at every `\section` call, which forces early float output and leaves whitespace gaps.
+
+## 6. Bibliography and Column Balance
+
+**Preventing floats from interrupting the reference list:**
+
+Any `figure*` or `table*` still in LaTeX's float queue when the bibliography starts will be inserted at the top of bibliography pages. Fix with a single `\FloatBarrier` right before `\begin{thebibliography}`:
+
+```latex
+% Flush all pending wide floats before references start.
+% Use \FloatBarrier from the placeins package (loaded without [section]).
+\FloatBarrier
+\begin{thebibliography}{15}
+...
+\end{thebibliography}
+```
+
+**Balancing the two reference columns on the last page:**
+
+IEEEtran provides `\IEEEtriggeratref{N}` to insert a column break before reference N. Place it just before `\begin{thebibliography}` and adjust N until both columns are roughly the same height:
+
+```latex
+\FloatBarrier
+\IEEEtriggeratref{7}   % break before ref 7; adjust N to balance columns
+\begin{thebibliography}{15}
+...
+\end{thebibliography}
+```
+
+A typical starting point for N is `ceil(total_refs / 2)`. If reference lengths are uneven, shift N by ±1 until the columns look balanced.
+
+## 7. Initial Submission Cleanup
 Remove before initial submission unless the journal explicitly asks for final-package material:
 
 ```latex
@@ -185,7 +220,7 @@ or, for BibTeX:
 \end{document}
 ```
 
-## 7. QA Checklist
+## 8. QA Checklist
 
 Run after every conversion:
 
@@ -196,10 +231,13 @@ Run after every conversion:
 - No `\includegraphics[width=\textwidth]` remains inside a single-column `figure`.
 - No `\includegraphics[width=1.2\textwidth]` or similar overwide draft hack remains.
 - References close cleanly before `\end{document}`.
+- `\FloatBarrier` (from `placeins`, loaded without `[section]`) placed immediately before `\begin{thebibliography}` or `\bibliography`.
+- `\IEEEtriggeratref{N}` placed before `\begin{thebibliography}` to balance the two reference columns; N ≈ half the total reference count.
 - Compile log has no fatal errors, undefined refs/cites, `Float too large`, or `Overfull \vbox`.
 - PDF title page, wide floats, table legibility, and final references page are visually inspected.
+- Final references page has no figures or tables interrupting the reference list.
 
-## 8. Common Log Interpretation
+## 9. Common Log Interpretation
 
 - `Underfull \vbox`: often harmless in figure-heavy two-column papers; inspect the rendered page.
 - `Underfull \hbox` in references: usually acceptable unless the reference line is visibly ugly.

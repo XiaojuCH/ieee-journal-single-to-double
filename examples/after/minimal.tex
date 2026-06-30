@@ -9,6 +9,10 @@
 \usepackage{amsmath}
 \usepackage{stfloats}    % FIX 2: enables figure*/table* at bottom of page
 \usepackage{adjustbox}   % FIX 3: for wide tables in two-column mode
+\usepackage{placeins}          % FIX 11: makes \FloatBarrier available; used
+                               %   manually before \begin{thebibliography} to
+                               %   flush pending floats without adding section
+                               %   barriers that create whitespace gaps.
 \usepackage{lipsum}      % filler text for layout demonstration
 
 % Float tuning: allow more of the page to be floats
@@ -145,6 +149,9 @@ Baseline            & 84.2 & 41.2  & 0.731   & 0.853 & 0.832 & 0.842 & 31.0   \\
 \lipsum[8]
 
 % FIX 9: wide results figure → figure* [t!] + \textwidth
+%         [t!] keeps it at a text-page top for maximum column density.
+%         The \FloatBarrier before \begin{thebibliography} (FIX 12) ensures
+%         it is output before references even if it drifts past the section.
 \begin{figure*}[t!]
 \centering
 \fbox{\rule{0pt}{1.5in}\rule{0.92\textwidth}{0pt}}
@@ -166,6 +173,12 @@ narrow/wide floats, \texttt{table}/\texttt{table*} with
 for initial submission.
 \lipsum[9]
 
+% FIX 12: \FloatBarrier flushes all pending figure*/table* before the
+%          bibliography begins, preventing them from appearing mid-reference.
+%          \IEEEtriggeratref inserts a column break before reference N so
+%          both reference columns end at the same height. Adjust N if needed.
+\FloatBarrier
+\IEEEtriggeratref{7}
 \begin{thebibliography}{15}
 \bibitem{unet}
 O.~Ronneberger, P.~Fischer, and T.~Brox, ``U-Net: Convolutional networks
