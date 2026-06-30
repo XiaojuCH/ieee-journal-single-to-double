@@ -10,6 +10,17 @@
 
 IEEEtran one-column drafts are comfortable to write, but they hide layout rules that decide whether a journal submission looks professional. The conversion becomes painful when conference-style author blocks, pinned `[H]` floats, overwide `\textwidth` figures, and final-submission biographies collide with two-column IEEE output. This repository packages the practical rules, source-backed references, working examples, and an audit script so you can convert without rediscovering every trap by hand.
 
+## ⚡ One-Prompt Setup
+
+Already using an AI coding assistant (Codex, Kiro, Cursor, or similar)?
+Paste the line below and it will clone the repo, read the workflow, and start converting your manuscript — no manual setup needed:
+
+```
+Use the skill at https://github.com/XiaojuCH/ieee-journal-single-to-double — clone it, read SKILL.md, then help me convert my IEEEtran draft from onecolumn to twocolumn journal format. Start by running the audit script on my .tex file or ask me for the path.
+```
+
+Or clone manually and open `SKILL.md` in any AI assistant.
+
 ## 📸 Before vs After
 
 ### Page 1 — Title & Author Block
