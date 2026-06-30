@@ -6,7 +6,9 @@
 
 **[中文说明]** | **[English](README.md)**
 
-IEEEtran 单栏草稿转双栏，理论上改一行 `\documentclass` 就够了。实际上每次都会踩坑：会议式作者块放进 journal 模式悄悄报错、`[H]` 钉死的浮动体在双栏里溢出、`\textwidth` 的图超出单栏宽度、投稿版本还留着不该有的作者简介……每个坑都要单独搜一遍才能找到答案。这个仓库是我踩完这些坑之后，整理出来的对照手册。
+投稿过 IEEE 期刊的人，脑子里都有一张转换清单——只是从来没人把它写出来。
+
+IEEEtran 单栏草稿转双栏，理论上改一行 `\documentclass` 即可。实际上踩的每个坑都要单独搜一遍：会议式作者块放进 journal 模式悄悄出错、`[H]` 钉死的浮动体双栏里溢出、`\textwidth` 的图超出单栏宽度、参考文献后还留着不该有的作者简介……踩完这些坑、终于忍不住把它们整理成文档之后，就有了这个仓库。排版不是科研的核心，希望这份手册能帮大家把时间花在刀刃上。
 
 ## 转换前后对比
 
@@ -70,6 +72,15 @@ scripts/audit_ieee_twocolumn.ps1         审计脚本（Windows）
 scripts/audit_ieee_twocolumn.sh          审计脚本（Linux/macOS）
 ```
 
+## 欢迎补充
+
+转稿时踩到了这里没有覆盖的坑？欢迎提 PR：
+
+- 在 `references/ieee-conversion-patterns.md` 增加一个 before/after 代码块
+- 格式参考 [CONTRIBUTING.md](CONTRIBUTING.md)
+
+每一个新 pattern，都可能帮到和你当初一样卡壳的人。
+
 ---
 
-如果这帮你省了时间，给个 Star 帮助更多人找到它。
+如果这帮你省了时间，Star 一下让更多人能找到它。

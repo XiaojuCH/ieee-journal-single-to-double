@@ -6,7 +6,9 @@
 
 **English** | **[中文说明](README_ZH.md)**
 
-Converting an IEEEtran draft from `onecolumn` to `twocolumn` is supposed to be a one-line change. It never is. Conference-style author blocks silently break in journal mode, `[H]`-pinned floats overflow columns, `\textwidth` figures are too wide for a single column, and biographies don't belong in initial submissions. Each trap takes a while to find. This repo is the guide I wish had existed before I spent that time.
+Everyone who has submitted to an IEEE journal has worked out these fixes. Nobody ever wrote them down.
+
+Converting an IEEEtran draft from `onecolumn` to `twocolumn` is supposed to be a one-line change. The traps are small and scattered: conference-style `\IEEEauthorblockN/A` silently breaks in journal mode, `[H]`-pinned floats overflow columns, `\textwidth` figures are too wide for a single column, biographies left in after references. Each one requires a separate search to fix. After hitting them enough times, I finally wrote the guide down. Formatting is not the point of research — this repo exists so you can spend less time on it.
 
 ## Before and after
 
@@ -69,6 +71,15 @@ references/official-sources.md           IEEE style manual, IEEEtran CTAN, sttoo
 scripts/audit_ieee_twocolumn.ps1         Audit script (Windows)
 scripts/audit_ieee_twocolumn.sh          Audit script (Linux/macOS)
 ```
+
+## Contributing
+
+Hit a trap that isn't covered here? PRs welcome:
+
+- Add a before/after code block in `references/ieee-conversion-patterns.md`
+- Format reference: [CONTRIBUTING.md](CONTRIBUTING.md)
+
+Every new pattern is one fewer thing the next person has to search for.
 
 ---
 
