@@ -8,14 +8,6 @@
 
 Converting an IEEEtran draft from `onecolumn` to `twocolumn` is supposed to be a one-line change. It never is. Conference-style author blocks silently break in journal mode, `[H]`-pinned floats overflow columns, `\textwidth` figures are too wide for a single column, and biographies don't belong in initial submissions. Each trap takes a while to find. This repo is the guide I wish had existed before I spent that time.
 
-## ⚡ Using an AI assistant?
-
-Paste this into Codex, Kiro, Cursor, or similar — it will clone the repo, read the workflow, and start converting your manuscript:
-
-```
-Use the skill at https://github.com/XiaojuCH/ieee-journal-single-to-double — clone it, read SKILL.md, then help me convert my IEEEtran draft from onecolumn to twocolumn journal format. Start by running the audit script on my .tex file or ask me for the path.
-```
-
 ## Before and after
 
 ### Page 1 — author block
@@ -31,6 +23,14 @@ Use the skill at https://github.com/XiaojuCH/ieee-journal-single-to-double — c
 |:---:|:---:|
 | ![before p2](assets/before-page2.png) | ![after p2](assets/after-page2.png) |
 | `figure[H]` + `\textwidth` fills one column | `figure*[t!]` spans both; `figure` + `\columnwidth` stays in one |
+
+## ⚡ Using an AI assistant?
+
+Paste this into Codex, Kiro, Cursor, or similar — it will clone the repo, read the workflow, and start converting your manuscript:
+
+```
+Use the skill at https://github.com/XiaojuCH/ieee-journal-single-to-double — clone it, read SKILL.md, then help me convert my IEEEtran draft from onecolumn to twocolumn journal format. Start by running the audit script on my .tex file or ask me for the path.
+```
 
 ## What changes
 
