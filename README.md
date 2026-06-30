@@ -1,4 +1,4 @@
-# IEEE Journal Single-to-Double
+# ieee-journal-single-to-double
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/XiaojuCH/ieee-journal-single-to-double?style=social)](https://github.com/XiaojuCH/ieee-journal-single-to-double/stargazers)
@@ -6,92 +6,70 @@
 
 **English** | **[中文说明](README_ZH.md)**
 
-> The missing guide to converting IEEE one-column drafts to two-column journal submissions.
+Converting an IEEEtran draft from `onecolumn` to `twocolumn` is supposed to be a one-line change. It never is. Conference-style author blocks silently break in journal mode, `[H]`-pinned floats overflow columns, `\textwidth` figures are too wide for a single column, and biographies don't belong in initial submissions. Each trap takes a while to find. This repo is the guide I wish had existed before I spent that time.
 
-IEEEtran one-column drafts are comfortable to write, but they hide layout rules that decide whether a journal submission looks professional. The conversion becomes painful when conference-style author blocks, pinned `[H]` floats, overwide `\textwidth` figures, and final-submission biographies collide with two-column IEEE output. This repository packages the practical rules, source-backed references, working examples, and an audit script so you can convert without rediscovering every trap by hand.
+## ⚡ Using an AI assistant?
 
-## ⚡ One-Prompt Setup
-
-Already using an AI coding assistant (Codex, Kiro, Cursor, or similar)?
-Paste the line below and it will clone the repo, read the workflow, and start converting your manuscript — no manual setup needed:
+Paste this into Codex, Kiro, Cursor, or similar — it will clone the repo, read the workflow, and start converting your manuscript:
 
 ```
 Use the skill at https://github.com/XiaojuCH/ieee-journal-single-to-double — clone it, read SKILL.md, then help me convert my IEEEtran draft from onecolumn to twocolumn journal format. Start by running the audit script on my .tex file or ask me for the path.
 ```
 
-Or clone manually and open `SKILL.md` in any AI assistant.
+## Before and after
 
-## 📸 Before vs After
+### Page 1 — author block
 
-### Page 1 — Title & Author Block
-
-| One-column draft | Two-column journal |
+| Draft | Submission |
 |:---:|:---:|
 | ![before p1](assets/before-page1.png) | ![after p1](assets/after-page1.png) |
 | Conference-style `\IEEEauthorblockN/A` | Journal `\author{...\thanks{...}}` footnotes |
 
-### Page 2 — Float Placement
+### Page 2 — float placement
 
-| One-column draft | Two-column journal |
+| Draft | Submission |
 |:---:|:---:|
 | ![before p2](assets/before-page2.png) | ![after p2](assets/after-page2.png) |
-| `figure[H]` + `\textwidth` fills single column | `figure*[t!]` spans both columns; `figure` + `\columnwidth` fits one |
+| `figure[H]` + `\textwidth` fills one column | `figure*[t!]` spans both; `figure` + `\columnwidth` stays in one |
 
-## 🔄 Common Conversion Patterns
+## What changes
 
-| One-column draft problem | Two-column journal fix |
+| Draft | Submission |
 | --- | --- |
 | `\documentclass[journal,12pt,draftclsnofoot,onecolumn]{IEEEtran}` | `\documentclass[journal,twocolumn]{IEEEtran}` |
-| `\IEEEauthorblockN` / `\IEEEauthorblockA` in journal mode | `\author{...\thanks{...}}` with affiliations in footnotes |
-| `\begin{figure}[H]` with `\includegraphics[width=\textwidth]{...}` | `figure` + `\columnwidth` (single-col) or `figure*` + `\textwidth` (full-width) |
-| `\begin{table}[H]` and manually stretched tables | Floating `table` / `table*` with `adjustbox` or font-size tuning |
-| Author biographies and photos after references | End cleanly after `\end{thebibliography}` for initial submission |
+| `\IEEEauthorblockN` / `\IEEEauthorblockA` | `\author{...\thanks{...}}` with footnote affiliations |
+| `\begin{figure}[H]` with `width=\textwidth` | `figure` + `\columnwidth`, or `figure*` + `\textwidth` for wide |
+| `\begin{table}[H]` and stretched tables | Floating `table` / `table*` with `adjustbox` |
+| Biographies after references | Remove for initial submission |
 
-## 🚀 Quick Start
+## Usage
 
-1. **Copy** the skill into your Codex skills directory, or clone this repo for reference.
-2. **Audit** your converted file:
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File scripts\audit_ieee_twocolumn.ps1 -TexFile path\to\paper.tex
-   ```
-3. **Fix** flagged patterns, compile the PDF, visually inspect wide floats and the references page, then submit.
+Run the audit script on your `.tex` file first:
 
-## 📂 Repository Layout
-
-```text
-.
-├─ SKILL.md                               # Codex skill entry point
-├─ agents\openai.yaml                     # Optional Codex UI metadata
-├─ assets\
-│  ├─ before-page1.png                    # Draft: title & author block
-│  ├─ before-page2.png                    # Draft: float placement
-│  ├─ after-page1.png                     # Journal: title & author block
-│  └─ after-page2.png                     # Journal: float placement
-├─ examples\
-│  ├─ README.md                           # What the examples demonstrate
-│  ├─ before\minimal.tex                  # Draft with common conversion traps
-│  └─ after\minimal.tex                   # Corrected two-column version
-├─ references\
-│  ├─ ieee-conversion-patterns.md         # Practical before/after rules
-│  └─ official-sources.md                 # IEEE/CTAN authoritative sources
-└─ scripts\
-   └─ audit_ieee_twocolumn.ps1            # Structural audit script
+```powershell
+# Windows
+powershell -ExecutionPolicy Bypass -File scripts\audit_ieee_twocolumn.ps1 -TexFile path\to\paper.tex
 ```
 
-## 📖 Resources
+```bash
+# Linux / macOS
+bash scripts/audit_ieee_twocolumn.sh path/to/paper.tex
+```
 
-| Resource | Description |
-|---|---|
-| [SKILL.md](SKILL.md) | Codex skill — invoke directly in your manuscript session |
-| [references/ieee-conversion-patterns.md](references/ieee-conversion-patterns.md) | All practical patterns with before/after code blocks |
-| [references/official-sources.md](references/official-sources.md) | IEEE Editorial Style Manual, IEEEtran on CTAN, sttools |
-| [examples/before/minimal.tex](examples/before/minimal.tex) | Minimal compilable draft example |
-| [examples/after/minimal.tex](examples/after/minimal.tex) | Corrected journal submission version |
+Fix what it flags. Compile. Inspect the PDF for wide floats and the references page. Submit.
 
-## Why This Exists
+## Files
 
-Most IEEE manuscripts start as one-column drafts because they are easier to read during review. The gap between a draft and a valid two-column journal submission is small in concept but surprisingly tricky in practice: float placement, author-footnote conventions, and journal-mode IEEEtran behavior are poorly documented for the conversion path specifically. This project is an opinionated guide for exactly that gap.
+```
+SKILL.md                                  AI assistant skill (Codex, Kiro, etc.)
+examples/before/minimal.tex              Draft with all the common traps
+examples/after/minimal.tex               What the submission should look like
+references/ieee-conversion-patterns.md   All patterns with before/after code
+references/official-sources.md           IEEE style manual, IEEEtran CTAN, sttools
+scripts/audit_ieee_twocolumn.ps1         Audit script (Windows)
+scripts/audit_ieee_twocolumn.sh          Audit script (Linux/macOS)
+```
 
 ---
 
-⭐ If this saved you an hour of debugging, a star helps others find it.
+If this saved you some time, a star helps others find it.
