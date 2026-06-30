@@ -12,10 +12,19 @@ IEEEtran one-column drafts are comfortable to write, but they hide layout rules 
 
 ## 📸 Before vs After
 
+### Page 1 — Title & Author Block
+
 | One-column draft | Two-column journal |
 |:---:|:---:|
-| ![before](assets/before-page1.png) | ![after](assets/after-page1.png) |
-| `draftclsnofoot,onecolumn` | `journal,twocolumn` |
+| ![before p1](assets/before-page1.png) | ![after p1](assets/after-page1.png) |
+| Conference-style `\IEEEauthorblockN/A` | Journal `\author{...\thanks{...}}` footnotes |
+
+### Page 2 — Float Placement
+
+| One-column draft | Two-column journal |
+|:---:|:---:|
+| ![before p2](assets/before-page2.png) | ![after p2](assets/after-page2.png) |
+| `figure[H]` + `\textwidth` fills single column | `figure*[t!]` spans both columns; `figure` + `\columnwidth` fits one |
 
 ## 🔄 Common Conversion Patterns
 
@@ -43,8 +52,10 @@ IEEEtran one-column drafts are comfortable to write, but they hide layout rules 
 ├─ SKILL.md                               # Codex skill entry point
 ├─ agents\openai.yaml                     # Optional Codex UI metadata
 ├─ assets\
-│  ├─ before-page1.png                    # One-column draft preview
-│  └─ after-page1.png                     # Two-column journal preview
+│  ├─ before-page1.png                    # Draft: title & author block
+│  ├─ before-page2.png                    # Draft: float placement
+│  ├─ after-page1.png                     # Journal: title & author block
+│  └─ after-page2.png                     # Journal: float placement
 ├─ examples\
 │  ├─ README.md                           # What the examples demonstrate
 │  ├─ before\minimal.tex                  # Draft with common conversion traps

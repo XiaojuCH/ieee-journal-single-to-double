@@ -12,10 +12,19 @@
 
 ## 📸 转换效果对比
 
+### 第1页 — 标题与作者块
+
 | 单栏草稿 | 双栏期刊投稿 |
 |:---:|:---:|
-| ![修改前](assets/before-page1.png) | ![修改后](assets/after-page1.png) |
-| `draftclsnofoot,onecolumn` | `journal,twocolumn` |
+| ![修改前 p1](assets/before-page1.png) | ![修改后 p1](assets/after-page1.png) |
+| 会议式 `\IEEEauthorblockN/A` | 期刊式 `\author{...\thanks{...}}` 脚注 |
+
+### 第2页 — 浮动体排版
+
+| 单栏草稿 | 双栏期刊投稿 |
+|:---:|:---:|
+| ![修改前 p2](assets/before-page2.png) | ![修改后 p2](assets/after-page2.png) |
+| `figure[H]` + `\textwidth` 占满单栏 | `figure*[t!]` 跨双栏；`figure` + `\columnwidth` 单栏 |
 
 ## 🔄 常见转换模式速查
 
@@ -43,8 +52,10 @@
 ├─ SKILL.md                               # Codex 技能入口
 ├─ agents\openai.yaml                     # Codex UI 元数据（可选）
 ├─ assets\
-│  ├─ before-page1.png                    # 单栏草稿预览图
-│  └─ after-page1.png                     # 双栏期刊预览图
+│  ├─ before-page1.png                    # 草稿：标题与作者块
+│  ├─ before-page2.png                    # 草稿：浮动体排版
+│  ├─ after-page1.png                     # 投稿版：标题与作者块
+│  └─ after-page2.png                     # 投稿版：浮动体排版
 ├─ examples\
 │  ├─ before\minimal.tex                  # 含常见转换陷阱的草稿示例
 │  └─ after\minimal.tex                   # 修正后的双栏版本
