@@ -8,6 +8,7 @@
 \usepackage{booktabs}
 \usepackage{float}      % enables [H] specifier
 \usepackage{amsmath}
+\usepackage{lipsum}     % filler text for layout demonstration
 
 % ----- Author block: conference-style (wrong for journal) -----
 \title{A Study on Medical Image Segmentation Using Deep Learning:\\
@@ -46,6 +47,7 @@ IEEEtran, one-column draft, two-column conversion, float placement.
 One-column drafts are convenient during writing, but some draft patterns
 do not transfer cleanly to IEEE journal two-column output.
 Fig.~\ref{fig:architecture} shows the proposed system overview.
+\lipsum[1]
 
 % TRAP 1: figure pinned with [H] and sized to \textwidth
 \begin{figure}[H]
@@ -61,6 +63,7 @@ Fig.~\ref{fig:architecture} shows the proposed system overview.
 % ------------------------------------------------------------
 Prior work on this topic spans multiple sub-fields.
 We briefly review the most relevant approaches.
+\lipsum[2-3]
 
 % TRAP 2: second figure [H] -- also full width
 \begin{figure}[H]
@@ -83,12 +86,14 @@ The combined loss function is defined as
 where $\lambda$ balances the two terms.
 The encoder (Fig.~\ref{fig:encoder}) extracts multi-scale features that
 are later fused by the decoder.
+\lipsum[4-5]
 
 % ------------------------------------------------------------
 \section{Experiments}
 % ------------------------------------------------------------
 
 \subsection{Comparison with State-of-the-Art}
+\lipsum[6]
 
 % TRAP 3: table[H]
 \begin{table}[H]
@@ -108,6 +113,7 @@ Swin-UNet      & 87.0          & 36.9          & 27.1       \\
 \end{table}
 
 \subsection{Ablation Study}
+\lipsum[7]
 
 % TRAP 4: wide table[H] -- many columns, will overflow in two-column
 \begin{table}[H]
@@ -128,6 +134,7 @@ Baseline            & 84.2 & 41.2  & 0.731   & 0.853 & 0.832 & 0.842 & 31.0   \\
 \end{table}
 
 \subsection{Qualitative Results}
+\lipsum[8]
 
 % TRAP 5: results comparison figure [H] full width
 \begin{figure}[H]
@@ -144,6 +151,7 @@ Baseline            & 84.2 & 41.2  & 0.731   & 0.853 & 0.832 & 0.842 & 31.0   \\
 This draft demonstrates the conversion traps in their natural habitat.
 Each \texttt{[H]} float, overwide figure, and conference author block
 shown above needs to be resolved before two-column journal submission.
+\lipsum[9]
 
 \begin{thebibliography}{5}
 \bibitem{unet}

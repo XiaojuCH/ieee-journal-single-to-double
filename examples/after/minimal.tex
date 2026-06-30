@@ -9,6 +9,7 @@
 \usepackage{amsmath}
 \usepackage{stfloats}    % FIX 2: enables figure*/table* at bottom of page
 \usepackage{adjustbox}   % FIX 3: for wide tables in two-column mode
+\usepackage{lipsum}      % filler text for layout demonstration
 
 % Float tuning: allow more of the page to be floats
 \renewcommand{\topfraction}{0.9}
@@ -49,6 +50,7 @@ IEEEtran, journal submission, two-column conversion, float placement.
 Two-column IEEE journal submissions require float environments that match
 the target column width and author blocks that follow journal conventions.
 Fig.~\ref{fig:architecture} shows the proposed system overview.
+\lipsum[1]
 
 % FIX 5: wide overview figure → figure* [t!] + \textwidth
 %         (spans both columns; must be at top or bottom of page)
@@ -66,6 +68,7 @@ Fig.~\ref{fig:architecture} shows the proposed system overview.
 % ------------------------------------------------------------
 Prior work on this topic spans multiple sub-fields.
 We briefly review the most relevant approaches.
+\lipsum[2-3]
 
 % FIX 6: narrow detail figure → figure [htbp] + \columnwidth
 %         (fits in one column; no need for figure*)
@@ -88,12 +91,14 @@ The combined loss function is defined as
 \end{equation}
 where $\lambda$ balances the two terms.
 The encoder (Fig.~\ref{fig:encoder}) extracts multi-scale features.
+\lipsum[4-5]
 
 % ------------------------------------------------------------
 \section{Experiments}
 % ------------------------------------------------------------
 
 \subsection{Comparison with State-of-the-Art}
+\lipsum[6]
 
 % FIX 7: table[H] → table[htbp], fits naturally in one column
 \begin{table}[htbp]
@@ -113,6 +118,7 @@ Swin-UNet      & 87.0          & 36.9          & 27.1       \\
 \end{table}
 
 \subsection{Ablation Study}
+\lipsum[7]
 
 % FIX 8: wide table[H] → table*[t!] + adjustbox
 %         (spans both columns; adjustbox prevents column overflow)
@@ -136,6 +142,7 @@ Baseline            & 84.2 & 41.2  & 0.731   & 0.853 & 0.832 & 0.842 & 31.0   \\
 \end{table*}
 
 \subsection{Qualitative Results}
+\lipsum[8]
 
 % FIX 9: wide results figure → figure* [t!] + \textwidth
 \begin{figure*}[t!]
@@ -157,6 +164,7 @@ demonstrated in the draft.  The key fixes are: journal author footnotes
 narrow/wide floats, \texttt{table}/\texttt{table*} with
 \texttt{adjustbox} for wide tables, and removal of biography material
 for initial submission.
+\lipsum[9]
 
 \begin{thebibliography}{5}
 \bibitem{unet}
