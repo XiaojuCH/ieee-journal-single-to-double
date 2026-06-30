@@ -1,59 +1,181 @@
-﻿\documentclass[journal,12pt,draftclsnofoot,onecolumn]{IEEEtran}
+% ============================================================
+%  BEFORE: Typical one-column IEEEtran draft
+%  Demonstrates common patterns that break in two-column mode.
+% ============================================================
+\documentclass[journal,12pt,draftclsnofoot,onecolumn]{IEEEtran}
 
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{float}
+\usepackage{float}      % enables [H] specifier
+\usepackage{amsmath}
 
-\begin{document}
-
-\title{Minimal IEEE One-Column Draft}
+% ----- Author block: conference-style (wrong for journal) -----
+\title{A Study on Medical Image Segmentation Using Deep Learning:\\
+Minimal Before/After Conversion Example}
 
 \author{
-    \IEEEauthorblockN{First Author\textsuperscript{1}, Second Author\textsuperscript{2}}
-    \IEEEauthorblockA{\textsuperscript{1}Department of Examples, Example University\\
-    \textsuperscript{2}Department of Conversion, Sample Hospital}
+    \IEEEauthorblockN{%
+        First Author\textsuperscript{1},
+        Second Author\textsuperscript{2},
+        Third Author\textsuperscript{2}}
+    \IEEEauthorblockA{%
+        \textsuperscript{1}Department of Computer Science, Example University\\
+        \textsuperscript{2}Department of Radiology, Sample Hospital\\
+        Email: first@example.edu \hfill second@hospital.org \hfill third@hospital.org}
 }
+
+\begin{document}
 
 \maketitle
 
 \begin{abstract}
-This minimal draft intentionally shows common one-column IEEEtran patterns that need attention before a two-column journal submission.
+This manuscript is a minimal draft intentionally written in one-column
+IEEEtran style.  It collects the most common draft patterns---pinned
+\texttt{[H]} floats, \texttt{\textbackslash textwidth} figures,
+conference-style author blocks, a wide ablation table, and trailing
+biographies---that need attention before a two-column journal submission.
 \end{abstract}
 
 \begin{IEEEkeywords}
-IEEEtran, one-column draft, two-column conversion.
+IEEEtran, one-column draft, two-column conversion, float placement.
 \end{IEEEkeywords}
 
+% ------------------------------------------------------------
 \section{Introduction}
-One-column drafts are convenient during writing, but some draft patterns do not transfer cleanly to IEEE journal two-column output.
+% ------------------------------------------------------------
+One-column drafts are convenient during writing, but some draft patterns
+do not transfer cleanly to IEEE journal two-column output.
+Fig.~\ref{fig:architecture} shows the proposed system overview.
 
+% TRAP 1: figure pinned with [H] and sized to \textwidth
 \begin{figure}[H]
 \centering
-\fbox{\rule{0pt}{1.2in}\rule{0.92\textwidth}{0pt}}
-\caption{A draft figure pinned with \texttt{[H]} and sized to \texttt{\textbackslash textwidth}.}
-\label{fig:draft}
+\fbox{\rule{0pt}{1.8in}\rule{0.92\textwidth}{0pt}}
+\caption{Overall architecture of the proposed network.
+         In draft mode this fills the full text width.}
+\label{fig:architecture}
 \end{figure}
 
+% ------------------------------------------------------------
+\section{Related Work}
+% ------------------------------------------------------------
+Prior work on this topic spans multiple sub-fields.
+We briefly review the most relevant approaches.
+
+% TRAP 2: second figure [H] -- also full width
+\begin{figure}[H]
+\centering
+\fbox{\rule{0pt}{1.4in}\rule{0.92\textwidth}{0pt}}
+\caption{Encoder module detail.
+         A narrow figure like this should become single-column after
+         conversion, not a full-width \texttt{figure*}.}
+\label{fig:encoder}
+\end{figure}
+
+% ------------------------------------------------------------
+\section{Methodology}
+% ------------------------------------------------------------
+The combined loss function is defined as
+\begin{equation}
+\mathcal{L} = \mathcal{L}_{\text{Dice}} + \lambda\,\mathcal{L}_{\text{CE}},
+\label{eq:loss}
+\end{equation}
+where $\lambda$ balances the two terms.
+The encoder (Fig.~\ref{fig:encoder}) extracts multi-scale features that
+are later fused by the decoder.
+
+% ------------------------------------------------------------
+\section{Experiments}
+% ------------------------------------------------------------
+
+\subsection{Comparison with State-of-the-Art}
+
+% TRAP 3: table[H]
 \begin{table}[H]
 \centering
-\caption{A draft table pinned with \texttt{[H]}.}
-\label{tab:draft}
-\begin{tabular}{lcc}
+\caption{Comparison with state-of-the-art methods on Dataset~A.}
+\label{tab:sota}
+\begin{tabular}{lccc}
 \toprule
-Method & Dice & HD95 \\
+Method         & Dice (\%)     & HD95 (mm)     & Params (M) \\
 \midrule
-Baseline & 0.84 & 41.2 \\
-Converted & 0.86 & 40.5 \\
+U-Net          & 84.2          & 41.2          & 31.0       \\
+TransUNet      & 86.1          & 38.5          & 85.6       \\
+Swin-UNet      & 87.0          & 36.9          & 27.1       \\
+\textbf{Ours}  & \textbf{88.4} & \textbf{35.1} & 42.3       \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Conclusion}
-This file is intentionally shaped like a draft that should be converted before submission.
+\subsection{Ablation Study}
 
-\begin{thebibliography}{1}
+% TRAP 4: wide table[H] -- many columns, will overflow in two-column
+\begin{table}[H]
+\centering
+\caption{Ablation study: impact of each proposed component.}
+\label{tab:ablation}
+\begin{tabular}{lccccccc}
+\toprule
+Configuration       & Dice & HD95  & Jaccard & Prec. & Rec.  & F1    & Params \\
+\midrule
+Baseline            & 84.2 & 41.2  & 0.731   & 0.853 & 0.832 & 0.842 & 31.0   \\
++ Attention         & 86.1 & 38.5  & 0.755   & 0.871 & 0.851 & 0.861 & 36.4   \\
++ Multi-scale       & 87.3 & 36.8  & 0.776   & 0.882 & 0.863 & 0.872 & 39.7   \\
+\textbf{Full model} & \textbf{88.4} & \textbf{35.1} & \textbf{0.792}
+                    & \textbf{0.896} & \textbf{0.873} & \textbf{0.884} & 42.3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Qualitative Results}
+
+% TRAP 5: results comparison figure [H] full width
+\begin{figure}[H]
+\centering
+\fbox{\rule{0pt}{1.5in}\rule{0.92\textwidth}{0pt}}
+\caption{Visual comparison of segmentation results.
+         Four columns: input, ground truth, baseline, and ours.}
+\label{fig:qualitative}
+\end{figure}
+
+% ------------------------------------------------------------
+\section{Conclusion}
+% ------------------------------------------------------------
+This draft demonstrates the conversion traps in their natural habitat.
+Each \texttt{[H]} float, overwide figure, and conference author block
+shown above needs to be resolved before two-column journal submission.
+
+\begin{thebibliography}{5}
+\bibitem{unet}
+O.~Ronneberger, P.~Fischer, and T.~Brox, ``U-Net: Convolutional networks
+for biomedical image segmentation,'' in \emph{MICCAI}, 2015, pp.~234--241.
+
+\bibitem{transunet}
+J.~Chen \emph{et al.}, ``TransUNet: Transformers make strong encoders
+for medical image segmentation,'' \emph{arXiv:2102.04306}, 2021.
+
+\bibitem{swinunet}
+H.~Cao \emph{et al.}, ``Swin-UNet: Unet-like pure transformer for
+medical image segmentation,'' in \emph{ECCV Workshops}, 2022.
+
 \bibitem{ieeetran}
-M.~Shell, ``IEEEtran,'' CTAN, 2015.
+M.~Shell, ``IEEEtran,'' CTAN, 2015. [Online].
+Available: https://ctan.org/pkg/ieeetran
+
+\bibitem{stfloats}
+S.~Rahtz and H.~Oberdiek, ``sttools,'' CTAN, 2016. [Online].
+Available: https://ctan.org/pkg/sttools
 \end{thebibliography}
+
+% TRAP 6: biography section -- remove for initial submission
+\begin{IEEEbiography}[{\fbox{\rule{0pt}{1in}\rule{0.8in}{0pt}}}]{First Author}
+received the B.S. degree from Example University.
+His research interests include deep learning and medical imaging.
+\end{IEEEbiography}
+
+\begin{IEEEbiography}[{\fbox{\rule{0pt}{1in}\rule{0.8in}{0pt}}}]{Second Author}
+is a radiologist at Sample Hospital.
+Her research interests include AI-assisted diagnosis.
+\end{IEEEbiography}
 
 \end{document}

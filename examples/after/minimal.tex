@@ -1,58 +1,187 @@
-﻿\documentclass[journal,twocolumn]{IEEEtran}
+% ============================================================
+%  AFTER: Corrected two-column IEEEtran journal submission
+%  Each conversion fix is annotated inline.
+% ============================================================
+\documentclass[journal,twocolumn]{IEEEtran}   % FIX 1: removed onecolumn/draft options
 
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{stfloats}
+\usepackage{amsmath}
+\usepackage{stfloats}    % FIX 2: enables figure*/table* at bottom of page
+\usepackage{adjustbox}   % FIX 3: for wide tables in two-column mode
+
+% Float tuning: allow more of the page to be floats
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\dbltopfraction}{0.9}
+\renewcommand{\floatpagefraction}{0.8}
+\renewcommand{\dblfloatpagefraction}{0.8}
+
+% ----- Author block: journal style with \thanks footnotes -----
+% FIX 4: replaced \IEEEauthorblockN/A and \hfill email with \thanks
+\title{A Study on Medical Image Segmentation Using Deep Learning:\\
+Minimal Before/After Conversion Example}
+
+\author{First~Author,~Second~Author,~and~Third~Author%
+\thanks{First Author is with the Department of Computer Science,
+    Example University (e-mail: first@example.edu).}%
+\thanks{Second and Third Authors are with the Department of Radiology,
+    Sample Hospital (e-mail: \{second, third\}@hospital.org).}%
+\thanks{Corresponding author: Second Author.}}
 
 \begin{document}
-
-\title{Minimal IEEE Two-Column Journal Submission}
-
-\author{First~Author and Second~Author%
-\thanks{First Author is with the Department of Examples, Example University.}%
-\thanks{Second Author is with the Department of Conversion, Sample Hospital.}%
-\thanks{Corresponding author: Second Author (e-mail: second.author@example.edu).}}
 
 \maketitle
 
 \begin{abstract}
-This minimal manuscript shows the same content converted into safer IEEEtran journal two-column patterns.
+This manuscript demonstrates the same content as the one-column draft,
+now converted into safe IEEEtran journal two-column patterns.
+Compare each float and the author block against the
+\texttt{before/minimal.tex} counterpart to see every fix in context.
 \end{abstract}
 
 \begin{IEEEkeywords}
-IEEEtran, journal submission, two-column conversion.
+IEEEtran, journal submission, two-column conversion, float placement.
 \end{IEEEkeywords}
 
+% ------------------------------------------------------------
 \section{Introduction}
-Two-column IEEE journal submissions should use journal author footnotes and float environments that match the target width.
+% ------------------------------------------------------------
+Two-column IEEE journal submissions require float environments that match
+the target column width and author blocks that follow journal conventions.
+Fig.~\ref{fig:architecture} shows the proposed system overview.
 
+% FIX 5: wide overview figure → figure* [t!] + \textwidth
+%         (spans both columns; must be at top or bottom of page)
 \begin{figure*}[t!]
 \centering
-\fbox{\rule{0pt}{1.2in}\rule{0.92\textwidth}{0pt}}
-\caption{A wide figure promoted to \texttt{figure*} and sized to \texttt{\textbackslash textwidth}.}
-\label{fig:converted}
+\fbox{\rule{0pt}{1.8in}\rule{0.92\textwidth}{0pt}}
+\caption{Overall architecture of the proposed network.
+         Promoted to \texttt{figure*} because it spans the full page width.
+         Float specifier changed from \texttt{[H]} to \texttt{[t!]}.}
+\label{fig:architecture}
 \end{figure*}
 
+% ------------------------------------------------------------
+\section{Related Work}
+% ------------------------------------------------------------
+Prior work on this topic spans multiple sub-fields.
+We briefly review the most relevant approaches.
+
+% FIX 6: narrow detail figure → figure [htbp] + \columnwidth
+%         (fits in one column; no need for figure*)
+\begin{figure}[htbp]
+\centering
+\fbox{\rule{0pt}{1.4in}\rule{0.92\columnwidth}{0pt}}
+\caption{Encoder module detail.
+         Kept as single-column \texttt{figure} since it does not need
+         full-page width; sized with \texttt{\textbackslash columnwidth}.}
+\label{fig:encoder}
+\end{figure}
+
+% ------------------------------------------------------------
+\section{Methodology}
+% ------------------------------------------------------------
+The combined loss function is defined as
+\begin{equation}
+\mathcal{L} = \mathcal{L}_{\text{Dice}} + \lambda\,\mathcal{L}_{\text{CE}},
+\label{eq:loss}
+\end{equation}
+where $\lambda$ balances the two terms.
+The encoder (Fig.~\ref{fig:encoder}) extracts multi-scale features.
+
+% ------------------------------------------------------------
+\section{Experiments}
+% ------------------------------------------------------------
+
+\subsection{Comparison with State-of-the-Art}
+
+% FIX 7: table[H] → table[htbp], fits naturally in one column
 \begin{table}[htbp]
 \centering
-\caption{A compact table allowed to float in one column.}
-\label{tab:converted}
-\begin{tabular}{lcc}
+\caption{Comparison with state-of-the-art methods on Dataset~A.}
+\label{tab:sota}
+\begin{tabular}{lccc}
 \toprule
-Method & Dice & HD95 \\
+Method         & Dice (\%)     & HD95 (mm)     & Params (M) \\
 \midrule
-Baseline & 0.84 & 41.2 \\
-Converted & 0.86 & 40.5 \\
+U-Net          & 84.2          & 41.2          & 31.0       \\
+TransUNet      & 86.1          & 38.5          & 85.6       \\
+Swin-UNet      & 87.0          & 36.9          & 27.1       \\
+\textbf{Ours}  & \textbf{88.4} & \textbf{35.1} & 42.3       \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Conclusion}
-This file ends cleanly after references and avoids final-submission-only biography material.
+\subsection{Ablation Study}
 
-\begin{thebibliography}{1}
+% FIX 8: wide table[H] → table*[t!] + adjustbox
+%         (spans both columns; adjustbox prevents column overflow)
+\begin{table*}[t!]
+\centering
+\caption{Ablation study: impact of each proposed component.}
+\label{tab:ablation}
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{lccccccc}
+\toprule
+Configuration       & Dice & HD95  & Jaccard & Prec. & Rec.  & F1    & Params \\
+\midrule
+Baseline            & 84.2 & 41.2  & 0.731   & 0.853 & 0.832 & 0.842 & 31.0   \\
++ Attention         & 86.1 & 38.5  & 0.755   & 0.871 & 0.851 & 0.861 & 36.4   \\
++ Multi-scale       & 87.3 & 36.8  & 0.776   & 0.882 & 0.863 & 0.872 & 39.7   \\
+\textbf{Full model} & \textbf{88.4} & \textbf{35.1} & \textbf{0.792}
+                    & \textbf{0.896} & \textbf{0.873} & \textbf{0.884} & 42.3 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table*}
+
+\subsection{Qualitative Results}
+
+% FIX 9: wide results figure → figure* [t!] + \textwidth
+\begin{figure*}[t!]
+\centering
+\fbox{\rule{0pt}{1.5in}\rule{0.92\textwidth}{0pt}}
+\caption{Visual comparison of segmentation results.
+         Four columns: input, ground truth, baseline, and ours.
+         Promoted to \texttt{figure*} because side-by-side comparison
+         needs full page width.}
+\label{fig:qualitative}
+\end{figure*}
+
+% ------------------------------------------------------------
+\section{Conclusion}
+% ------------------------------------------------------------
+This manuscript shows the corrected two-column versions of every pattern
+demonstrated in the draft.  The key fixes are: journal author footnotes
+(\textbackslash thanks), mixed \texttt{figure}/\texttt{figure*} for
+narrow/wide floats, \texttt{table}/\texttt{table*} with
+\texttt{adjustbox} for wide tables, and removal of biography material
+for initial submission.
+
+\begin{thebibliography}{5}
+\bibitem{unet}
+O.~Ronneberger, P.~Fischer, and T.~Brox, ``U-Net: Convolutional networks
+for biomedical image segmentation,'' in \emph{MICCAI}, 2015, pp.~234--241.
+
+\bibitem{transunet}
+J.~Chen \emph{et al.}, ``TransUNet: Transformers make strong encoders
+for medical image segmentation,'' \emph{arXiv:2102.04306}, 2021.
+
+\bibitem{swinunet}
+H.~Cao \emph{et al.}, ``Swin-UNet: Unet-like pure transformer for
+medical image segmentation,'' in \emph{ECCV Workshops}, 2022.
+
 \bibitem{ieeetran}
-M.~Shell, ``IEEEtran,'' CTAN, 2015.
+M.~Shell, ``IEEEtran,'' CTAN, 2015. [Online].
+Available: https://ctan.org/pkg/ieeetran
+
+\bibitem{stfloats}
+S.~Rahtz and H.~Oberdiek, ``sttools,'' CTAN, 2016. [Online].
+Available: https://ctan.org/pkg/sttools
 \end{thebibliography}
+
+% FIX 10: IEEEbiography sections removed for initial submission.
+%         Add them back only if the journal explicitly requires them
+%         in the submission package (most IEEE journals do not).
 
 \end{document}
