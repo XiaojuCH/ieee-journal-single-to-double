@@ -1,4 +1,4 @@
-﻿param(
+param(
     [Parameter(Mandatory=$true)]
     [string]$TexFile
 )
@@ -8,7 +8,8 @@ if (-not (Test-Path -LiteralPath $TexFile)) {
     exit 2
 }
 
-$text = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $TexFile))
+$rawText = [System.IO.File]::ReadAllText((Resolve-Path -LiteralPath $TexFile))
+$text = (($rawText -split "`r?`n") | Where-Object { $_ -notmatch '^\s*%' }) -join "`n"
 $issues = New-Object System.Collections.Generic.List[string]
 $warnings = New-Object System.Collections.Generic.List[string]
 
@@ -35,9 +36,9 @@ if ($text -match '\\hfill\s*\(e-mail|Corresponding author:.*\\hfill') {
     Add-Issue "Potentially unsafe \hfill in author/corresponding-author email text."
 }
 
-$singleFigures = [regex]::Matches($text, '(?s)\begin\{figure\}(?:\[[^\]]*\])?.*?\end\{figure\}')
+$singleFigures = [regex]::Matches($text, '(?s)\\begin\{figure\}(?:\[[^\]]*\])?.*?\\end\{figure\}')
 foreach ($figure in $singleFigures) {
-    if ($figure.Value -match '\includegraphics\[[^\]]*width\s*=\s*\textwidth') {
+    if ($figure.Value -match '\\includegraphics\[[^\]]*width\s*=\s*\\textwidth') {
         Add-Warning "A single-column figure appears to use width=\textwidth; consider \columnwidth or figure*."
         break
     }
