@@ -1,0 +1,24 @@
+﻿name: Compile LaTeX examples
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Compile before example
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: examples/before/minimal.tex
+          args: "-pdf -interaction=nonstopmode -halt-on-error"
+
+      - name: Compile after example
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: examples/after/minimal.tex
+          args: "-pdf -interaction=nonstopmode -halt-on-error"

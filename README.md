@@ -1,8 +1,8 @@
-﻿# IEEE Journal Single-to-Double
+# IEEE Journal Single-to-Double
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/XiaojuCH/ieee-journal-single-to-double?style=social)](https://github.com/XiaojuCH/ieee-journal-single-to-double/stargazers)
-[![Compile examples](https://img.shields.io/badge/CI-coming_in_P1-lightgrey)](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions)
+[![Compile examples](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml/badge.svg)](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml)
 
 The missing guide to converting IEEE one-column drafts to two-column journal submissions.
 
