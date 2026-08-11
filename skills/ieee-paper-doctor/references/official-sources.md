@@ -12,7 +12,17 @@ Practical implications:
 - The first footnote/author affiliation paragraph is unnumbered and contains manuscript/support/corresponding-author and affiliation information.
 - The manual explicitly says not to use asterisks or daggers for the first footnote.
 - Corresponding author information belongs in the first footnote wording.
-- Photographs and biographies are late/final article material; for initial-submission cleanup, it is reasonable to remove them when the journal does not require them at initial review.
+- Photographs and biographies are commonly late/final article material. Verify the target journal and submission stage instead of deleting them unconditionally.
+
+## IEEE Author Tools
+
+URL: https://journals.ieeeauthorcenter.ieee.org/create-your-ieee-journal-article/authoring-tools-and-templates/tools-for-ieee-authors/
+
+Practical implications:
+
+- Prefer the publication-specific template selected through IEEE's Template Selector.
+- After local checks, use the IEEE LaTeX Analyzer and PDF Checker when available.
+- Treat this skill as a conversion and preflight aid, not as a replacement for the target journal's current instructions.
 
 ## IEEEtran on CTAN
 

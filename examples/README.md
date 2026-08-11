@@ -42,3 +42,23 @@ pdflatex examples/after/minimal.tex
 ```
 
 The CI workflow (`.github/workflows/compile.yml`) runs both on every push.
+
+## Auditing
+
+Run the corrected example in strict mode:
+
+```bash
+python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/after/minimal.tex --strict
+```
+
+The draft fixture is intentionally invalid and should return a non-zero exit code:
+
+```bash
+python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/before/minimal.tex --strict
+```
+
+Preview the deterministic part of the conversion without writing a file:
+
+```bash
+python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py fix examples/before/minimal.tex
+```

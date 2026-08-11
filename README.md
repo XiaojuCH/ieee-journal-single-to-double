@@ -1,86 +1,107 @@
-# ieee-journal-single-to-double
+# IEEE Paper Doctor
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/XiaojuCH/ieee-journal-single-to-double?style=social)](https://github.com/XiaojuCH/ieee-journal-single-to-double/stargazers)
-[![Compile examples](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml/badge.svg)](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml)
+[![Test IEEE Paper Doctor](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml/badge.svg)](https://github.com/XiaojuCH/ieee-journal-single-to-double/actions/workflows/compile.yml)
 
 **English** | **[中文说明](README_ZH.md)**
 
-Everyone who has submitted to an IEEE journal has worked out these fixes. Nobody ever wrote them down.
+Safely convert an IEEEtran one-column draft into a two-column journal manuscript—with a reviewable diff, deterministic checks, and compile evidence. Scientific content stays untouched.
 
-Converting an IEEEtran draft from `onecolumn` to `twocolumn` is supposed to be a one-line change. The traps are small and scattered: conference-style `\IEEEauthorblockN/A` silently breaks in journal mode, `[H]`-pinned floats overflow columns, `\textwidth` figures are too wide for a single column, biographies left in after references. Each one requires a separate search to fix. After hitting them enough times, I finally wrote the guide down. Formatting is not the point of research — this repo exists so you can spend less time on it.
+Changing `onecolumn` to `twocolumn` is one line. Fixing the author block, wide figures, pinned tables, float queues, and bibliography page is not. IEEE Paper Doctor combines a Codex skill with a dependency-free CLI so the mechanical changes are reproducible and the judgment calls stay reviewable.
+
+## Start in 30 seconds
+
+Install the CLI directly from GitHub:
+
+```bash
+pipx install git+https://github.com/XiaojuCH/ieee-journal-single-to-double.git
+```
+
+Audit a manuscript without changing it:
+
+```bash
+ieee-paper-doctor check path/to/main.tex --strict
+```
+
+Preview conservative fixes as a unified diff:
+
+```bash
+ieee-paper-doctor fix path/to/main.tex
+```
+
+Write a separate converted source, then compile and verify it:
+
+```bash
+ieee-paper-doctor fix path/to/main.tex --output path/to/main.twocolumn.tex
+ieee-paper-doctor verify path/to/main.twocolumn.tex --compile --strict
+```
+
+`fix` never overwrites the input unless you explicitly pass `--write`.
+
+## Use as a Codex skill
+
+Ask Codex to install the skill from this repository:
+
+```text
+$skill-installer Install ieee-paper-doctor from https://github.com/XiaojuCH/ieee-journal-single-to-double/tree/master/skills/ieee-paper-doctor
+```
+
+Then invoke it on a paper project:
+
+```text
+$ieee-paper-doctor Convert my IEEEtran draft to a two-column journal submission. Preserve scientific content, show me the diff, compile it, and report remaining layout risks.
+```
+
+The repository is also packaged as an installable Codex plugin through `.codex-plugin/plugin.json`.
+
+## What it catches
+
+- `draftcls`, `draftclsnofoot`, `onecolumn`, and conflicting class options in any order.
+- Conference-style `\IEEEauthorblockN` / `\IEEEauthorblockA` in journal mode.
+- `[H]` figures, tables, and algorithms that need placement review.
+- `\textwidth` and overwide `1.x\textwidth` sizing inside one-column floats.
+- Biographies and photo placeholders that may not belong in the current submission stage.
+- Material left after the bibliography.
+- Compile failures, oversized floats, overfull vertical boxes, and undefined references.
+
+Use `--json` for machine-readable diagnostics and `--strict` to make warnings fail CI.
+
+## What it fixes automatically
+
+The CLI deliberately limits automatic edits to transformations that are easy to review:
+
+- normalize IEEEtran journal class options for explicit two-column output;
+- replace obvious `\textwidth` sizing inside unstarred floats with `\columnwidth`;
+- preserve all scientific prose, equations, captions, labels, citations, and results;
+- produce an idempotent diff before any write.
+
+Choosing `figure` versus `figure*`, rebuilding author affiliations, removing biographies, and adding float packages remain skill-guided decisions because they depend on the paper and target journal.
 
 ## Before and after
 
-### Page 1 — author block
-
-| Draft | Submission |
+| One-column draft | Corrected two-column manuscript |
 |:---:|:---:|
-| ![before p1](assets/before-page1.png) | ![after p1](assets/after-page1.png) |
-| Conference-style `\IEEEauthorblockN/A` | Journal `\author{...\thanks{...}}` footnotes |
+| ![One-column draft page](assets/before-page1.png) | ![Two-column result page](assets/after-page1.png) |
+| ![Pinned draft float](assets/before-page2.png) | ![Corrected float layout](assets/after-page2.png) |
 
-### Page 2 — float placement
+The complete, self-contained examples live in [`examples/before`](examples/before) and [`examples/after`](examples/after).
 
-| Draft | Submission |
-|:---:|:---:|
-| ![before p2](assets/before-page2.png) | ![after p2](assets/after-page2.png) |
-| `figure[H]` + `\textwidth` fills one column | `figure*[t!]` spans both; `figure` + `\columnwidth` stays in one |
+## Scope and safety
 
-## ⚡ Using an AI assistant?
+IEEE Paper Doctor targets IEEEtran LaTeX journal manuscripts. It does not convert Word files or ACM, Springer, Elsevier, or arbitrary LaTeX templates.
 
-Paste this into Codex, Kiro, Cursor, or similar — it will clone the repo, read the workflow, and start converting your manuscript:
+Journal requirements override this tool. Before judgment-based edits, confirm the publication and whether the manuscript is an initial, revision, or final submission. The skill points to IEEE's Template Selector, LaTeX Analyzer, and PDF Checker for final validation.
 
-```
-Use the skill at https://github.com/XiaojuCH/ieee-journal-single-to-double — clone it, read SKILL.md, then help me convert my IEEEtran draft from onecolumn to twocolumn journal format. Start by running the audit script on my .tex file or ask me for the path.
-```
-
-## What changes
-
-| Draft | Submission |
-| --- | --- |
-| `\documentclass[journal,12pt,draftclsnofoot,onecolumn]{IEEEtran}` | `\documentclass[journal,twocolumn]{IEEEtran}` |
-| `\IEEEauthorblockN` / `\IEEEauthorblockA` | `\author{...\thanks{...}}` with footnote affiliations |
-| `\begin{figure}[H]` with `width=\textwidth` | `figure` + `\columnwidth`, or `figure*` + `\textwidth` for wide |
-| `\begin{table}[H]` and stretched tables | Floating `table` / `table*` with `adjustbox` |
-| Biographies after references | Remove for initial submission |
-
-## Usage
-
-Run the audit script on your `.tex` file first:
-
-```powershell
-# Windows
-powershell -ExecutionPolicy Bypass -File scripts\audit_ieee_twocolumn.ps1 -TexFile path\to\paper.tex
-```
+## Development
 
 ```bash
-# Linux / macOS
-bash scripts/audit_ieee_twocolumn.sh path/to/paper.tex
+python -m unittest discover -s tests -v
+python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/after/minimal.tex --strict
 ```
 
-Fix what it flags. Compile. Inspect the PDF for wide floats and the references page. Submit.
+The GitHub workflow runs unit tests, verifies that the bad fixture fails, verifies that the corrected fixture passes, and compiles both LaTeX examples.
 
-## Files
+Contributions are welcome—especially minimal reproducible IEEEtran failures and anonymized real-world conversion cases. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```
-SKILL.md                                  AI assistant skill (Codex, Kiro, etc.)
-examples/before/minimal.tex              Draft with all the common traps
-examples/after/minimal.tex               What the submission should look like
-references/ieee-conversion-patterns.md   All patterns with before/after code
-references/official-sources.md           IEEE style manual, IEEEtran CTAN, sttools
-scripts/audit_ieee_twocolumn.ps1         Audit script (Windows)
-scripts/audit_ieee_twocolumn.sh          Audit script (Linux/macOS)
-```
-
-## Contributing
-
-Hit a trap that isn't covered here? PRs welcome:
-
-- Add a before/after code block in `references/ieee-conversion-patterns.md`
-- Format reference: [CONTRIBUTING.md](CONTRIBUTING.md)
-
-Every new pattern is one fewer thing the next person has to search for.
-
----
-
-If this saved you some time, a star helps others find it.
+If IEEE Paper Doctor saves you a formatting round-trip, a star helps the next author find it.
