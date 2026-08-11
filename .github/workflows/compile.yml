@@ -25,8 +25,16 @@ jobs:
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
 
+      - name: Install and smoke-test the CLI
+        run: |
+          python -m pip install .
+          ieee-paper-doctor --version
+
       - name: Confirm corrected example passes strict audit
         run: python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/after/minimal.tex --strict
+
+      - name: Confirm multi-file project passes with GitHub annotations
+        run: ieee-paper-doctor check examples/project --strict --format github
 
       - name: Confirm draft example fails strict audit
         shell: bash
@@ -53,4 +61,10 @@ jobs:
         uses: xu-cheng/latex-action@v3
         with:
           root_file: examples/after/minimal.tex
+          args: "-pdf -interaction=nonstopmode -halt-on-error"
+
+      - name: Compile multi-file project
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: examples/project/main.tex
           args: "-pdf -interaction=nonstopmode -halt-on-error"

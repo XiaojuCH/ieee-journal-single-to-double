@@ -1,6 +1,6 @@
 ---
 name: ieee-paper-doctor
-description: Convert, audit, and verify IEEEtran LaTeX manuscripts for safe two-column journal submission. Use for IEEE single-column to double-column conversion, 单栏转双栏, IEEE 双栏排版, draftclsnofoot cleanup, figure or table overflow, figure*/table* placement, journal author blocks, bibliography float problems, camera-ready formatting, and final PDF layout checks. Do not use for Word, ACM, Springer, or non-IEEEtran templates.
+description: Convert, audit, and verify single-file or multi-file IEEEtran LaTeX projects for safe two-column journal submission. Use for IEEE single-column to double-column conversion, 单栏转双栏, IEEE 双栏排版, multi-file papers using input/include/subfile, draftclsnofoot cleanup, figure or table overflow, figure*/table* placement, journal author blocks, bibliography float problems, camera-ready formatting, CI annotations, audit reports, and final PDF layout checks. Do not use for Word, ACM, Springer, or non-IEEEtran templates.
 ---
 
 # IEEE Paper Doctor
@@ -14,17 +14,18 @@ Convert an IEEEtran project without rewriting scientific content. Produce a revi
    - Read journal-specific instructions when provided. Do not assume every IEEE journal wants the same author, biography, anonymity, or float treatment.
 
 2. Inspect the project.
-   - Locate the main file through `\documentclass`, not by filename alone.
-   - Find included files, bibliography mode, figures, tables, algorithms, wide equations, author metadata, and biography blocks.
+   - Pass a project directory when possible; the CLI locates the unique IEEEtran main file and follows `\input`, `\include`, and `\subfile` recursively.
+   - If multiple main files exist, identify the intended one explicitly instead of guessing.
+   - Find bibliography mode, figures, tables, algorithms, wide equations, author metadata, and biography blocks across included files.
    - Preserve user changes. Never rewrite claims, equations, captions, citations, or results unless requested.
 
 3. Run the bundled checker from the directory containing this `SKILL.md`:
 
    ```bash
-   python scripts/ieee_paper_doctor.py check path/to/main.tex --json
+   python scripts/ieee_paper_doctor.py check path/to/project --format json
    ```
 
-   Use `--strict` when warnings must fail CI. Read the JSON diagnostics before editing.
+   Use `--strict` when warnings must fail CI. Read the JSON diagnostics before editing. Use `--format github` in GitHub Actions and `--report audit.md` when the author needs a shareable review artifact.
 
 4. Generate conservative fixes as a diff:
 
@@ -33,6 +34,7 @@ Convert an IEEEtran project without rewriting scientific content. Produce a revi
    ```
 
    With no output flag, `fix` prints a unified diff and changes nothing. Use `--output converted.tex` for a new file or `--write` only after reviewing the diff. The deterministic fixer only normalizes safe class options and obvious single-column width expressions.
+   After the transformation preview, read the full project diagnostics; a clean main-file diff does not clear unresolved findings in included sources.
 
 5. Apply judgment-based fixes manually.
    - Choose `figure` versus `figure*` and `table` versus `table*` from content readability, not width alone.
@@ -44,7 +46,7 @@ Convert an IEEEtran project without rewriting scientific content. Produce a revi
 6. Verify:
 
    ```bash
-   python scripts/ieee_paper_doctor.py verify path/to/main.tex --compile --strict
+   python scripts/ieee_paper_doctor.py verify path/to/project --compile --strict --report ieee-audit.md
    ```
 
    Inspect the rendered PDF when a renderer is available. Check the title block, float readability, column overflow, equations, bibliography start, and final page. When standards or rationale are requested, read [references/official-sources.md](references/official-sources.md).
@@ -54,6 +56,7 @@ Convert an IEEEtran project without rewriting scientific content. Produce a revi
 - Default to a diff or a new output file; do not overwrite the only manuscript copy.
 - Preserve journal-specific class options unless they conflict with the requested conversion.
 - Treat `[H]`, wide floats, author blocks, and biographies as review items rather than blind replacements.
+- Treat missing or dynamic include targets as unresolved project risks; do not silently skip them.
 - Do not add packages speculatively. Compile after each structural group of edits.
 - Stop and report when the source is not IEEEtran or when the target format is ambiguous.
 
@@ -65,4 +68,5 @@ Return:
 - deterministic fixes applied;
 - judgment-based fixes applied;
 - compile command and result;
+- number of TeX files scanned and the audit report path, when generated;
 - unresolved warnings and any journal-specific decision still required.

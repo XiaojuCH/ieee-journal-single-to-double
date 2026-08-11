@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ieee-paper-doctor"
-version = "1.1.0"
-description = "Audit, conservatively fix, and verify IEEEtran two-column manuscripts."
+version = "1.2.0"
+description = "Audit, conservatively fix, and verify IEEEtran two-column projects."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }

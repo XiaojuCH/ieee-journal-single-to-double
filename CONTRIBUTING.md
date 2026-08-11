@@ -9,12 +9,14 @@ Contributions are welcome, especially minimal IEEEtran failures, anonymized real
 3. Put reusable skill guidance in `skills/ieee-paper-doctor/SKILL.md` or its `references/` files; keep user-facing documentation at the repository root.
 4. Do not add an automatic rewrite unless it is deterministic, reviewable, and idempotent.
 5. Preserve scientific prose, equations, captions, citations, labels, and results in fixtures.
+6. For project-discovery bugs, include the smallest useful directory tree and anonymize every author, path, and asset name.
 
 Run:
 
 ```bash
 python -m unittest discover -s tests -v
 python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/after/minimal.tex --strict
+python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/project --strict
 python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/before/minimal.tex --strict
 ```
 

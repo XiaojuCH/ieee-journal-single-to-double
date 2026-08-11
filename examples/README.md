@@ -1,7 +1,8 @@
 # Examples: Before and After
 
-These two files show the same paper skeleton converted from a typical
-one-column IEEEtran draft to a clean two-column journal submission.
+The `before` and `after` files show the same paper skeleton converted from a typical
+one-column IEEEtran draft to a clean two-column journal submission. The `project`
+directory demonstrates project-wide scanning across included files.
 
 ## What each file demonstrates
 
@@ -31,6 +32,12 @@ one-column IEEEtran draft to a clean two-column journal submission.
 | 7 | Wide results → `figure*[t!]` + `\textwidth` | Same as fix 3 |
 | 8 | Biography section removed | Clean ending after `\end{thebibliography}` |
 
+### `project/` — clean multi-file paper
+
+`project/main.tex` includes `project/sections/results.tex`. Pass the directory to
+the CLI to exercise automatic main-file discovery, recursive include scanning,
+per-file diagnostics, and project compilation.
+
 ## Compiling
 
 Both files are self-contained (no external images) and compile with a
@@ -39,6 +46,7 @@ standard TeX Live or MiKTeX installation:
 ```bash
 pdflatex examples/before/minimal.tex
 pdflatex examples/after/minimal.tex
+pdflatex examples/project/main.tex
 ```
 
 The CI workflow (`.github/workflows/compile.yml`) runs both on every push.
@@ -49,6 +57,7 @@ Run the corrected example in strict mode:
 
 ```bash
 python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/after/minimal.tex --strict
+python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/project --strict
 ```
 
 The draft fixture is intentionally invalid and should return a non-zero exit code:
