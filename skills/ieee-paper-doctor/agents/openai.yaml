@@ -1,0 +1,7 @@
+interface:
+  display_name: "IEEE Paper Doctor"
+  short_description: "Convert and verify IEEEtran two-column papers."
+  default_prompt: "Use $ieee-paper-doctor to convert my IEEEtran draft into a safe two-column journal submission and verify the PDF."
+
+policy:
+  allow_implicit_invocation: true

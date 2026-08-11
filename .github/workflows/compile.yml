@@ -1,11 +1,43 @@
-﻿name: Compile LaTeX examples
+name: Test IEEE Paper Doctor
 
 on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate plugin manifest JSON
+        run: python -m json.tool .codex-plugin/plugin.json > /dev/null
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Confirm corrected example passes strict audit
+        run: python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/after/minimal.tex --strict
+
+      - name: Confirm draft example fails strict audit
+        shell: bash
+        run: |
+          if python skills/ieee-paper-doctor/scripts/ieee_paper_doctor.py check examples/before/minimal.tex --strict; then
+            echo "Draft example unexpectedly passed"
+            exit 1
+          fi
+
   build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

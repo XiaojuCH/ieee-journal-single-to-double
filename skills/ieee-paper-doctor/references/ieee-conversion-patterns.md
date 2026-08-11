@@ -1,6 +1,6 @@
 # IEEEtran One-Column to Two-Column Patterns
 
-For source-backed rationale, see official-sources.md. This file focuses on practical conversion patterns.
+For source-backed rationale, see `official-sources.md`. This file focuses on practical conversion patterns. Apply each pattern only when the target journal and rendered output justify it.
 
 ## 1. Preamble
 
@@ -11,7 +11,7 @@ Before:
 \usepackage{float}
 ```
 
-After:
+Possible two-column result when these packages are actually needed:
 
 ```latex
 \documentclass[journal,twocolumn]{IEEEtran}
@@ -29,7 +29,7 @@ After:
 \renewcommand{\dblfloatpagefraction}{0.8}
 ```
 
-Do not keep `\usepackage{float}` unless specific `[H]` overrides are still needed. In two-column IEEEtran, `[H]` breaks multi-column flow and is almost never the right choice.
+Do not keep `\usepackage{float}` unless specific `[H]` overrides are still needed. Do not add `stfloats`, `adjustbox`, or `placeins` speculatively; first confirm that the manuscript uses the capability each package provides.
 
 ## 2. Author Block
 
@@ -191,7 +191,7 @@ IEEEtran provides `\IEEEtriggeratref{N}` to insert a column break before referen
 A typical starting point for N is `ceil(total_refs / 2)`. If reference lengths are uneven, shift N by ±1 until the columns look balanced.
 
 ## 7. Initial Submission Cleanup
-Remove before initial submission unless the journal explicitly asks for final-package material:
+Remove only when the target journal or submission stage does not request final-package material:
 
 ```latex
 \begin{IEEEbiography}

@@ -1,0 +1,35 @@
+{
+  "name": "ieee-paper-doctor",
+  "version": "1.1.0",
+  "description": "Safely convert, audit, and verify IEEEtran manuscripts for two-column journal submission.",
+  "author": {
+    "name": "XiaojuCH",
+    "url": "https://github.com/XiaojuCH"
+  },
+  "homepage": "https://github.com/XiaojuCH/ieee-journal-single-to-double",
+  "repository": "https://github.com/XiaojuCH/ieee-journal-single-to-double",
+  "license": "MIT",
+  "keywords": [
+    "ieee",
+    "ieeetran",
+    "latex",
+    "two-column",
+    "academic-writing"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "IEEE Paper Doctor",
+    "shortDescription": "Convert and verify IEEEtran two-column papers.",
+    "longDescription": "Audit an IEEEtran LaTeX project, apply conservative one-column-to-two-column fixes through a reviewable diff, compile it, and report remaining layout risks without rewriting scientific content.",
+    "developerName": "XiaojuCH",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Convert my IEEEtran draft to a safe two-column journal submission.",
+      "Audit this IEEE LaTeX paper for two-column layout problems.",
+      "把这篇 IEEEtran 单栏论文安全转换为双栏并验证 PDF。"
+    ]
+  }
+}

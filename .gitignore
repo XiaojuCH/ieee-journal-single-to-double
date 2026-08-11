@@ -10,6 +10,14 @@
 *.blg
 *.pdf
 
+# Python build/test artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+
 # OS/editor noise
 .DS_Store
 Thumbs.db
