@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project uses semantic versioning for public releases.
 
+## [1.2.0] - 2026-08-11
+
+### Added
+
+- Project-directory input with automatic IEEEtran main-file discovery.
+- Recursive, cycle-safe scanning for `\input`, `\include`, and `\subfile` sources.
+- Source file and line attribution for diagnostics across multi-file papers.
+- Project-root and current-file-relative include resolution with cycle protection.
+- Static detection of undefined `\ref` targets across included source files.
+- GitHub Actions annotation output through `--format github`.
+- Shareable Markdown audit reports through `--report`.
+- Horizontal overflow detection from `Overfull \hbox` compiler warnings.
+- Missing reference keys in compiler diagnostics for faster remediation.
+- The first actionable compiler error in JSON and Markdown output when `latexmk` fails.
+- A clean multi-file example project and project-level regression tests.
+
+### Changed
+
+- `check` and `verify` now accept either a main TeX file or a project directory.
+- JSON output preserves the legacy `file` field and adds the discovered main file, tool version, and complete scanned-file list.
+- Skill guidance now begins with project-wide discovery instead of main-file-only checks.
+- `fix` now rechecks all discovered sources after transforming the main file, so included-file risks remain visible.
+
 ## [1.1.0] - 2026-08-11
 
 ### Added

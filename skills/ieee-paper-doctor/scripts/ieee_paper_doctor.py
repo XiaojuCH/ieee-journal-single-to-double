@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 
 @dataclass(frozen=True)
@@ -24,15 +24,28 @@ class Diagnostic:
     severity: str
     message: str
     line: int | None = None
+    file: str | None = None
+
+
+@dataclass(frozen=True)
+class Project:
+    main: Path
+    files: tuple[Path, ...]
+    discovery_diagnostics: tuple[Diagnostic, ...] = ()
 
 
 DOCUMENT_CLASS_RE = re.compile(
-    r"\\documentclass(?:\[([^\]]*)\])?\{IEEEtran\}", re.IGNORECASE
+    r"\\documentclass\s*(?:\[([^\]]*)\]\s*)?\{\s*IEEEtran\s*\}", re.IGNORECASE
 )
 UNSTARRED_FLOAT_RE = re.compile(
     r"(?s)\\begin\{(?P<kind>figure|table)\}(?:\[[^\]]*\])?.*?"
     r"\\end\{(?P=kind)\}"
 )
+INCLUDE_RE = re.compile(
+    r"\\(?P<command>input|include|subfile)\s*\{(?P<target>[^{}]+)\}",
+    re.IGNORECASE,
+)
+IGNORED_PROJECT_DIRS = {".git", ".ieee-paper-doctor", "build", "dist", "out"}
 
 
 def read_source(path: Path) -> tuple[str, bool]:
@@ -46,6 +59,93 @@ def write_source(path: Path, text: str, has_bom: bool) -> None:
     if has_bom:
         payload = b"\xef\xbb\xbf" + payload
     path.write_bytes(payload)
+
+
+def iter_tex_files(root: Path) -> Iterable[Path]:
+    for path in sorted(root.rglob("*.tex")):
+        relative_parts = path.relative_to(root).parts[:-1]
+        if any(part.lower() in IGNORED_PROJECT_DIRS for part in relative_parts):
+            continue
+        yield path.resolve()
+
+
+def discover_main_file(root: Path) -> Path:
+    candidates: list[Path] = []
+    for path in iter_tex_files(root):
+        text, _ = read_source(path)
+        if DOCUMENT_CLASS_RE.search(strip_tex_comments(text)):
+            candidates.append(path)
+    if not candidates:
+        raise FileNotFoundError(f"No IEEEtran main TeX file was found under: {root}")
+    if len(candidates) > 1:
+        listed = ", ".join(str(path.relative_to(root)) for path in candidates[:5])
+        suffix = " ..." if len(candidates) > 5 else ""
+        raise ValueError(
+            f"Multiple IEEEtran main files were found under {root}: {listed}{suffix}. "
+            "Pass the intended main .tex file explicitly."
+        )
+    return candidates[0]
+
+
+def resolve_project(value: str) -> Project:
+    target = Path(value).expanduser().resolve()
+    if target.is_dir():
+        main = discover_main_file(target)
+    elif target.is_file():
+        main = target
+    else:
+        raise FileNotFoundError(f"TeX file or project directory not found: {target}")
+
+    files: list[Path] = []
+    diagnostics: list[Diagnostic] = []
+    queued = [main]
+    seen: set[Path] = set()
+    while queued:
+        current = queued.pop(0).resolve()
+        if current in seen:
+            continue
+        seen.add(current)
+        files.append(current)
+        text, _ = read_source(current)
+        clean = strip_tex_comments(text)
+        for match in INCLUDE_RE.finditer(clean):
+            raw_target = match.group("target").strip()
+            if any(marker in raw_target for marker in ("\\", "#", "$")):
+                diagnostics.append(
+                    Diagnostic(
+                        "IPD109",
+                        "warning",
+                        f"Could not resolve dynamic \\{match.group('command')} target: {raw_target}",
+                        line_number(clean, match.start()),
+                        str(current),
+                    )
+                )
+                continue
+            requested_path = Path(raw_target)
+            if not requested_path.suffix:
+                requested_path = requested_path.with_suffix(".tex")
+            candidate_paths = [
+                (main.parent / requested_path).resolve(),
+                (current.parent / requested_path).resolve(),
+            ]
+            include_path = next(
+                (candidate for candidate in candidate_paths if candidate.is_file()),
+                None,
+            )
+            if include_path is None:
+                diagnostics.append(
+                    Diagnostic(
+                        "IPD108",
+                        "warning",
+                        f"Included TeX file was not found: {raw_target}",
+                        line_number(clean, match.start()),
+                        str(current),
+                    )
+                )
+                continue
+            if include_path not in seen:
+                queued.append(include_path)
+    return Project(main, tuple(files), tuple(diagnostics))
 
 
 def strip_tex_comments(text: str) -> str:
@@ -88,6 +188,7 @@ def add_diagnostic(
     message: str,
     text: str,
     match: re.Match[str] | None = None,
+    source_path: Path | None = None,
 ) -> None:
     items.append(
         Diagnostic(
@@ -95,24 +196,31 @@ def add_diagnostic(
             severity=severity,
             message=message,
             line=line_number(text, match.start()) if match else None,
+            file=str(source_path) if source_path else None,
         )
     )
 
 
-def analyze(text: str) -> list[Diagnostic]:
+def analyze(
+    text: str,
+    *,
+    source_path: Path | None = None,
+    require_document_structure: bool = True,
+) -> list[Diagnostic]:
     clean = strip_tex_comments(text)
     diagnostics: list[Diagnostic] = []
 
     class_match = DOCUMENT_CLASS_RE.search(clean)
-    if not class_match:
+    if require_document_structure and not class_match:
         add_diagnostic(
             diagnostics,
             "IPD001",
             "error",
             "No IEEEtran document class was found; this tool only handles IEEEtran projects.",
             clean,
+            source_path=source_path,
         )
-    else:
+    elif class_match:
         options = {
             item.strip().lower()
             for item in (class_match.group(1) or "").split(",")
@@ -126,6 +234,7 @@ def analyze(text: str) -> list[Diagnostic]:
                 "IEEEtran is not in journal mode; confirm the target before converting.",
                 clean,
                 class_match,
+                source_path,
             )
         incompatible = sorted(
             options.intersection({"onecolumn", "draft", "draftcls", "draftclsnofoot"})
@@ -138,12 +247,18 @@ def analyze(text: str) -> list[Diagnostic]:
                 "Draft or one-column class options remain: " + ", ".join(incompatible) + ".",
                 clean,
                 class_match,
+                source_path,
             )
 
     match = re.search(r"\\maketitle\b", clean)
-    if not match:
+    if require_document_structure and not match:
         add_diagnostic(
-            diagnostics, "IPD004", "error", "Missing \\maketitle.", clean
+            diagnostics,
+            "IPD004",
+            "error",
+            "Missing \\maketitle.",
+            clean,
+            source_path=source_path,
         )
 
     match = re.search(r"\\IEEEauthorblock[NA]\b", clean)
@@ -155,6 +270,7 @@ def analyze(text: str) -> list[Diagnostic]:
             "Conference-style IEEEauthorblock commands remain in journal mode.",
             clean,
             match,
+            source_path,
         )
 
     match = re.search(
@@ -170,6 +286,7 @@ def analyze(text: str) -> list[Diagnostic]:
             "Biography or photo material remains; verify whether the submission stage requires it.",
             clean,
             match,
+            source_path,
         )
 
     for match in re.finditer(
@@ -182,6 +299,7 @@ def analyze(text: str) -> list[Diagnostic]:
             "A pinned [H] float remains; review its placement in two-column output.",
             clean,
             match,
+            source_path,
         )
 
     width_patterns = (
@@ -204,6 +322,7 @@ def analyze(text: str) -> list[Diagnostic]:
                     line=line_number(
                         clean, float_match.start() + local_match.start()
                     ),
+                    file=str(source_path) if source_path else None,
                 )
             )
 
@@ -216,6 +335,7 @@ def analyze(text: str) -> list[Diagnostic]:
             "An overwide 1.x\\textwidth sizing expression remains.",
             clean,
             match,
+            source_path,
         )
 
     match = re.search(r"\\usepackage\s*\[\s*section\s*\]\s*\{placeins\}", clean)
@@ -227,6 +347,7 @@ def analyze(text: str) -> list[Diagnostic]:
             "placeins with the section option can create large whitespace gaps.",
             clean,
             match,
+            source_path,
         )
 
     bibliography_end = re.search(r"\\end\{thebibliography\}", clean)
@@ -241,8 +362,59 @@ def analyze(text: str) -> list[Diagnostic]:
                 "Content remains between the bibliography and \\end{document}.",
                 clean,
                 bibliography_end,
+                source_path,
             )
 
+    return diagnostics
+
+
+def analyze_project(
+    project: Project,
+    source_overrides: dict[Path, str] | None = None,
+) -> list[Diagnostic]:
+    overrides = {path.resolve(): text for path, text in (source_overrides or {}).items()}
+    diagnostics = list(project.discovery_diagnostics)
+    project_sources: list[tuple[Path, str]] = []
+    for path in project.files:
+        text = overrides.get(path.resolve())
+        if text is None:
+            text, _ = read_source(path)
+        project_sources.append((path, text))
+        diagnostics.extend(
+            analyze(
+                text,
+                source_path=path,
+                require_document_structure=path == project.main,
+            )
+        )
+    clean_sources = [(path, strip_tex_comments(text)) for path, text in project_sources]
+    if not any(re.search(r"\\externaldocument\b", text) for _, text in clean_sources):
+        labels = {
+            match.group(1).strip()
+            for _, text in clean_sources
+            for match in re.finditer(r"\\label\s*\{([^{}]+)\}", text)
+        }
+        reported: set[str] = set()
+        reference_re = re.compile(
+            r"\\(?:ref|eqref|pageref|autoref|cref|Cref)\*?\s*\{([^{}]+)\}"
+        )
+        for path, text in clean_sources:
+            for match in reference_re.finditer(text):
+                for key in (item.strip() for item in match.group(1).split(",")):
+                    if not key or key in labels or key in reported:
+                        continue
+                    if any(marker in key for marker in ("\\", "#", "$")):
+                        continue
+                    reported.add(key)
+                    diagnostics.append(
+                        Diagnostic(
+                            "IPD110",
+                            "warning",
+                            f"Reference target is not defined in the scanned project: {key}",
+                            line_number(text, match.start()),
+                            str(path),
+                        )
+                    )
     return diagnostics
 
 
@@ -337,10 +509,139 @@ def print_diagnostics(path: Path, diagnostics: Sequence[Diagnostic]) -> None:
         print(f"IEEE Paper Doctor: {path}: no issues found")
         return
     for item in diagnostics:
+        item_path = Path(item.file) if item.file else path
         location = f":{item.line}" if item.line else ""
-        print(f"{path}{location}: {item.severity}: {item.code}: {item.message}")
+        print(f"{item_path}{location}: {item.severity}: {item.code}: {item.message}")
     summary = diagnostic_summary(diagnostics)
     print(f"Summary: {summary['errors']} error(s), {summary['warnings']} warning(s)")
+
+
+def github_escape(value: str, *, property_value: bool = False) -> str:
+    escaped = value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+    if property_value:
+        escaped = escaped.replace(":", "%3A").replace(",", "%2C")
+    return escaped
+
+
+def portable_path(path: Path, *, base: Path | None = None) -> str:
+    resolved = path.resolve()
+    for candidate_base in (base, Path.cwd()):
+        if candidate_base is None:
+            continue
+        try:
+            return resolved.relative_to(candidate_base.resolve()).as_posix()
+        except ValueError:
+            continue
+    return resolved.as_posix()
+
+
+def print_github_annotations(path: Path, diagnostics: Sequence[Diagnostic]) -> None:
+    for item in diagnostics:
+        item_path = portable_path(Path(item.file) if item.file else path)
+        properties = f"file={github_escape(item_path, property_value=True)}"
+        if item.line:
+            properties += f",line={item.line}"
+        message = github_escape(f"{item.code}: {item.message}")
+        print(f"::{item.severity} {properties}::{message}")
+    summary = diagnostic_summary(diagnostics)
+    print(
+        "::notice::IEEE Paper Doctor scanned "
+        f"{path}: {summary['errors']} error(s), {summary['warnings']} warning(s)"
+    )
+
+
+def markdown_report(
+    project: Project,
+    diagnostics: Sequence[Diagnostic],
+    *,
+    compiled: bool = False,
+    compiler_returncode: int | None = None,
+) -> str:
+    summary = diagnostic_summary(diagnostics)
+    status = "PASS" if not should_fail(diagnostics, strict=True) else "REVIEW REQUIRED"
+    lines = [
+        "# IEEE Paper Doctor Audit",
+        "",
+        f"- Version: `{VERSION}`",
+        f"- Status: **{status}**",
+        f"- Main file: `{portable_path(project.main, base=project.main.parent)}`",
+        f"- TeX files scanned: {len(project.files)}",
+        f"- Diagnostics: {summary['errors']} error(s), {summary['warnings']} warning(s)",
+    ]
+    if compiled:
+        compile_status = "passed" if compiler_returncode == 0 else "failed"
+        lines.append(f"- Compilation: **{compile_status}**")
+    lines.extend(["", "## Files scanned", ""])
+    lines.extend(
+        f"- `{portable_path(path, base=project.main.parent)}`" for path in project.files
+    )
+    lines.extend(["", "## Diagnostics", ""])
+    if not diagnostics:
+        lines.append("No issues found.")
+    else:
+        lines.extend(
+            [
+                "| Severity | Code | Location | Finding |",
+                "| --- | --- | --- | --- |",
+            ]
+        )
+        for item in diagnostics:
+            item_path = portable_path(
+                Path(item.file) if item.file else project.main,
+                base=project.main.parent,
+            )
+            location = item_path + (f":{item.line}" if item.line else "")
+            message = item.message.replace("|", "\\|").replace("\n", " ")
+            lines.append(
+                f"| {item.severity} | `{item.code}` | `{location}` | {message} |"
+            )
+    lines.extend(["", "_Generated by IEEE Paper Doctor._", ""])
+    return "\n".join(lines)
+
+
+def write_report(
+    output: str,
+    report: str,
+    *,
+    force: bool,
+) -> Path:
+    path = Path(output).expanduser().resolve()
+    if path.exists() and not force:
+        raise FileExistsError(f"Report exists: {path}. Use --force to replace it.")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(report, encoding="utf-8")
+    return path
+
+
+def requested_format(args: argparse.Namespace) -> str:
+    return "json" if getattr(args, "json", False) else getattr(args, "format", "text")
+
+
+def emit_project_diagnostics(
+    args: argparse.Namespace,
+    project: Project,
+    diagnostics: Sequence[Diagnostic],
+    *,
+    extra_json: dict[str, object] | None = None,
+) -> None:
+    output_format = requested_format(args)
+    if output_format == "json":
+        payload: dict[str, object] = {
+            "version": VERSION,
+            "file": str(project.main),
+            "main_file": str(project.main),
+            "files": [str(path) for path in project.files],
+            "summary": diagnostic_summary(diagnostics),
+            "diagnostics": [asdict(item) for item in diagnostics],
+        }
+        if extra_json:
+            payload.update(extra_json)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+    elif output_format == "github":
+        print_github_annotations(project.main, diagnostics)
+    else:
+        print(f"Project main file: {project.main} ({len(project.files)} TeX file(s))")
+        print_diagnostics(project.main, diagnostics)
 
 
 def make_diff(path: Path, before: str, after: str) -> str:
@@ -352,6 +653,66 @@ def make_diff(path: Path, before: str, after: str) -> str:
             tofile=str(path) + ".converted",
         )
     )
+
+
+def analyze_latex_log(log_text: str, log_path: Path | None = None) -> list[Diagnostic]:
+    diagnostics: list[Diagnostic] = []
+    log_checks = (
+        (r"LaTeX Error", "error", "IPD903", "The LaTeX log contains an error."),
+        (r"Float too large", "warning", "IPD904", "The LaTeX log reports an oversized float."),
+        (r"Overfull \\vbox", "warning", "IPD905", "The LaTeX log reports an overfull vertical box."),
+        (r"Overfull \\hbox", "warning", "IPD907", "The LaTeX log reports horizontal overflow that can cross a column or page margin."),
+    )
+    for pattern, severity, code, message in log_checks:
+        match = re.search(pattern, log_text, re.IGNORECASE)
+        if match:
+            diagnostics.append(
+                Diagnostic(
+                    code,
+                    severity,
+                    message,
+                    line=line_number(log_text, match.start()),
+                    file=str(log_path) if log_path else None,
+                )
+            )
+    undefined_match = re.search(
+        r"(?:Reference|Citation)\s+[`']([^`']+)'[^\r\n]*undefined|There were undefined references",
+        log_text,
+        re.IGNORECASE,
+    )
+    if undefined_match:
+        missing_keys = list(
+            dict.fromkeys(
+                re.findall(
+                    r"(?:Reference|Citation)\s+[`']([^`']+)'[^\r\n]*undefined",
+                    log_text,
+                    re.IGNORECASE,
+                )
+            )
+        )
+        detail = ""
+        if missing_keys:
+            visible = ", ".join(missing_keys[:5])
+            suffix = ", ..." if len(missing_keys) > 5 else ""
+            detail = f" Missing key(s): {visible}{suffix}."
+        diagnostics.append(
+            Diagnostic(
+                "IPD906",
+                "warning",
+                "The LaTeX log reports undefined references or citations." + detail,
+                line=line_number(log_text, undefined_match.start()),
+                file=str(log_path) if log_path else None,
+            )
+        )
+    return diagnostics
+
+
+def first_compiler_error(output: str) -> str | None:
+    for line in output.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("! ") or re.search(r"\.tex:\d+:\s", stripped):
+            return stripped[:300]
+    return None
 
 
 def compile_document(path: Path) -> tuple[int, str, list[Diagnostic]]:
@@ -367,6 +728,7 @@ def compile_document(path: Path) -> tuple[int, str, list[Diagnostic]]:
         "-pdf",
         "-interaction=nonstopmode",
         "-halt-on-error",
+        "-file-line-error",
         path.name,
     ]
     result = subprocess.run(
@@ -381,21 +743,17 @@ def compile_document(path: Path) -> tuple[int, str, list[Diagnostic]]:
     )
     diagnostics: list[Diagnostic] = []
     if result.returncode != 0:
+        detail = first_compiler_error(result.stdout)
+        message = "latexmk failed; inspect the compiler output."
+        if detail:
+            message += f" First compiler error: {detail}"
         diagnostics.append(
-            Diagnostic("IPD902", "error", "latexmk failed; inspect the compiler output.")
+            Diagnostic("IPD902", "error", message, file=str(path))
         )
     log_path = path.with_suffix(".log")
     if log_path.exists():
         log_text = log_path.read_text(encoding="utf-8", errors="replace")
-        log_checks = (
-            (r"LaTeX Error", "error", "IPD903", "The LaTeX log contains an error."),
-            (r"Float too large", "warning", "IPD904", "The LaTeX log reports an oversized float."),
-            (r"Overfull \\vbox", "warning", "IPD905", "The LaTeX log reports an overfull vertical box."),
-            (r"There were undefined references|Citation .* undefined", "warning", "IPD906", "The LaTeX log reports undefined references or citations."),
-        )
-        for pattern, severity, code, message in log_checks:
-            if re.search(pattern, log_text, re.IGNORECASE):
-                diagnostics.append(Diagnostic(code, severity, message))
+        diagnostics.extend(analyze_latex_log(log_text, log_path))
     return result.returncode, result.stdout, diagnostics
 
 
@@ -407,23 +765,17 @@ def require_tex_file(value: str) -> Path:
 
 
 def run_check(args: argparse.Namespace) -> int:
-    path = require_tex_file(args.tex_file)
-    text, _ = read_source(path)
-    diagnostics = analyze(text)
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": str(path),
-                    "summary": diagnostic_summary(diagnostics),
-                    "diagnostics": [asdict(item) for item in diagnostics],
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
+    project = resolve_project(args.target)
+    diagnostics = analyze_project(project)
+    emit_project_diagnostics(args, project, diagnostics)
+    if args.report:
+        report_path = write_report(
+            args.report,
+            markdown_report(project, diagnostics),
+            force=args.force,
         )
-    else:
-        print_diagnostics(path, diagnostics)
+        if requested_format(args) == "text":
+            print(f"Report: {report_path}")
     return 1 if should_fail(diagnostics, args.strict) else 0
 
 
@@ -431,7 +783,8 @@ def run_fix(args: argparse.Namespace) -> int:
     path = require_tex_file(args.tex_file)
     before, has_bom = read_source(path)
     after, actions = safe_transform(before)
-    diagnostics = analyze(after)
+    project = resolve_project(str(path))
+    diagnostics = analyze_project(project, {path: after})
     diff = make_diff(path, before, after)
 
     destination: Path | None = None
@@ -452,7 +805,10 @@ def run_fix(args: argparse.Namespace) -> int:
         print(
             json.dumps(
                 {
+                    "version": VERSION,
                     "file": str(path),
+                    "main_file": str(project.main),
+                    "files": [str(item) for item in project.files],
                     "output": str(destination) if destination else None,
                     "changed": before != after,
                     "actions": actions,
@@ -465,6 +821,7 @@ def run_fix(args: argparse.Namespace) -> int:
             )
         )
     else:
+        print(f"Project main file: {project.main} ({len(project.files)} TeX file(s))")
         if actions:
             for action in actions:
                 print(f"- {action}")
@@ -479,31 +836,37 @@ def run_fix(args: argparse.Namespace) -> int:
 
 
 def run_verify(args: argparse.Namespace) -> int:
-    path = require_tex_file(args.tex_file)
-    text, _ = read_source(path)
-    diagnostics = analyze(text)
+    project = resolve_project(args.target)
+    diagnostics = analyze_project(project)
     compiler_returncode: int | None = None
     compiler_output = ""
     if args.compile:
-        compiler_returncode, compiler_output, compile_diagnostics = compile_document(path)
+        compiler_returncode, compiler_output, compile_diagnostics = compile_document(project.main)
         diagnostics.extend(compile_diagnostics)
 
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "file": str(path),
-                    "compiled": args.compile,
-                    "compiler_returncode": compiler_returncode,
-                    "summary": diagnostic_summary(diagnostics),
-                    "diagnostics": [asdict(item) for item in diagnostics],
-                },
-                ensure_ascii=False,
-                indent=2,
-            )
+    emit_project_diagnostics(
+        args,
+        project,
+        diagnostics,
+        extra_json={
+            "compiled": args.compile,
+            "compiler_returncode": compiler_returncode,
+        },
+    )
+    if args.report:
+        report_path = write_report(
+            args.report,
+            markdown_report(
+                project,
+                diagnostics,
+                compiled=args.compile,
+                compiler_returncode=compiler_returncode,
+            ),
+            force=args.force,
         )
-    else:
-        print_diagnostics(path, diagnostics)
+        if requested_format(args) == "text":
+            print(f"Report: {report_path}")
+    if requested_format(args) == "text":
         if compiler_returncode:
             print("\nCompiler output (last 40 lines):")
             print("\n".join(compiler_output.splitlines()[-40:]))
@@ -515,15 +878,24 @@ def run_verify(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="ieee-paper-doctor",
-        description="Audit, conservatively fix, and verify IEEEtran two-column manuscripts.",
+        description="Audit, conservatively fix, and verify IEEEtran two-column projects.",
     )
     parser.add_argument("--version", action="version", version=VERSION)
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    check = subparsers.add_parser("check", help="Audit a TeX file without changing it.")
-    check.add_argument("tex_file")
+    check = subparsers.add_parser("check", help="Audit a TeX file or project directory.")
+    check.add_argument("target", help="Main .tex file or project directory.")
     check.add_argument("--strict", action="store_true", help="Treat warnings as failures.")
-    check.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    check_format = check.add_mutually_exclusive_group()
+    check_format.add_argument("--json", action="store_true", help="Emit machine-readable JSON (legacy alias).")
+    check_format.add_argument(
+        "--format",
+        choices=("text", "json", "github"),
+        default="text",
+        help="Choose human text, JSON, or GitHub Actions annotations.",
+    )
+    check.add_argument("--report", help="Write a shareable Markdown audit report.")
+    check.add_argument("--force", action="store_true", help="Replace an existing report.")
     check.set_defaults(handler=run_check)
 
     fix = subparsers.add_parser("fix", help="Generate conservative, reviewable fixes.")
@@ -536,11 +908,20 @@ def build_parser() -> argparse.ArgumentParser:
     fix.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
     fix.set_defaults(handler=run_fix)
 
-    verify = subparsers.add_parser("verify", help="Audit and optionally compile a TeX file.")
-    verify.add_argument("tex_file")
+    verify = subparsers.add_parser("verify", help="Audit and optionally compile a TeX project.")
+    verify.add_argument("target", help="Main .tex file or project directory.")
     verify.add_argument("--compile", action="store_true", help="Compile with latexmk.")
     verify.add_argument("--strict", action="store_true", help="Treat warnings as failures.")
-    verify.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    verify_format = verify.add_mutually_exclusive_group()
+    verify_format.add_argument("--json", action="store_true", help="Emit machine-readable JSON (legacy alias).")
+    verify_format.add_argument(
+        "--format",
+        choices=("text", "json", "github"),
+        default="text",
+        help="Choose human text, JSON, or GitHub Actions annotations.",
+    )
+    verify.add_argument("--report", help="Write a shareable Markdown audit report.")
+    verify.add_argument("--force", action="store_true", help="Replace an existing report.")
     verify.set_defaults(handler=run_verify)
     return parser
 
@@ -550,7 +931,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         return args.handler(args)
-    except (FileNotFoundError, FileExistsError, PermissionError, UnicodeError) as exc:
+    except (FileNotFoundError, FileExistsError, PermissionError, UnicodeError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
